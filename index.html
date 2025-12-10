@@ -58,11 +58,11 @@
         /* BUTTONS */
         button { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; color: white; transition: 0.3s; margin-top: 10px;}
 
-        /* Management Button - NOW GREEN */
+        /* Management Button - Green */
         .btn-mgmt { background-color: #27ae60; }
         .btn-mgmt:hover { background-color: #219150; }
 
-        /* Employee Button - GREEN */
+        /* Employee Button - Green */
         .btn-emp { background-color: #27ae60; }
         .btn-emp:hover { background-color: #219150; }
 
@@ -107,9 +107,11 @@
     <form onsubmit="handleLogin(event, 'management')">
         <label>Welcome Back!</label>
         <label>Enter User ID</label>
-        <input type="text" name="username" placeholder="Login ID" required>
+        <input type="text" id="mgmt-id" name="username" placeholder="Login ID" required>
+        
         <label>Enter Password</label>
-        <input type="password" name="password" placeholder="Password" required>
+        <input type="password" id="mgmt-pass" name="password" placeholder="Password" required>
+        
         <button type="submit" class="btn-mgmt">Login</button>
     </form>
 
@@ -127,9 +129,11 @@
     <form onsubmit="handleLogin(event, 'employee')">
         <label>Welcome Back!</label>
         <label>Enter User ID</label>
-        <input type="text" name="username" placeholder="Login ID" required>
+        <input type="text" id="emp-id" name="username" placeholder="Login ID" required>
+        
         <label>Enter Password</label>
-        <input type="password" name="password" placeholder="Password" required>
+        <input type="password" id="emp-pass" name="password" placeholder="Password" required>
+        
         <button type="submit" class="btn-emp">Login</button>
     </form>
 
@@ -175,16 +179,33 @@
         document.getElementById('management-section').style.display = 'flex';
     }
 
-    // --- NEW LOGIN HANDLER ---
+    // --- SECURE LOGIN HANDLER ---
     function handleLogin(event, role) {
-        event.preventDefault(); // Prevents the form from trying to post to a server
+        event.preventDefault(); // Stop page reload
         
         if(role === 'management') {
-            // Redirects to the management file
-            window.location.href = "management_dashboard.html"; 
-        } else {
-            // Redirects to the employee file
-            window.location.href = "employee_dashboard.html";
+            // Get inputs
+            const id = document.getElementById('mgmt-id').value;
+            const pass = document.getElementById('mgmt-pass').value;
+
+            // Check Credentials
+            if(id === "admin" && pass === "admin123") {
+                window.location.href = "management_dashboard.html";
+            } else {
+                alert("Invalid ID or Password");
+            }
+
+        } else if(role === 'employee') {
+            // Get inputs
+            const id = document.getElementById('emp-id').value;
+            const pass = document.getElementById('emp-pass').value;
+
+            // Check Credentials
+            if(id === "employee" && pass === "employee123") {
+                window.location.href = "employee_dashboard.html";
+            } else {
+                alert("Invalid ID or Password");
+            }
         }
     }
 
