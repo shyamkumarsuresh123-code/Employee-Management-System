@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Portal - AI Infotech</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- Shared Styles --- */
+        body, html {
+            margin: 0; padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100%; background-color: #f4f6f9;
+        }
+        .wrapper { display: flex; height: 100vh; width: 100%; }
+
+        /* --- SIDEBAR (BLUE THEME) --- */
+        .sidebar {
+            width: 260px;
+            background-color: #0d253f; /* Deep Blue */
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            height: 100vh; /* Full Height */
+        }
+        .brand-logo {
+            padding: 20px; text-align: center;
+            background-color: #081b2e; /* Darker Blue */
+            border-bottom: 1px solid #1f3a56;
+        }
+
+        /* --- NEW LOGO STYLE --- */
+        .sidebar-logo {
+            max-width: 100%;    /* Ensures it stays within the sidebar width */
+            height: auto;       /* Maintains aspect ratio */
+            width: 180px;       /* Sets a reasonable size */
+            display: block;
+            margin: 0 auto;     /* Centers the logo */
+        }
+
+        /* NAVIGATION LINKS */
+        .nav-links {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .nav-links li a {
+            display: block; padding: 15px 20px; color: #a0b4c9; /* Light Grey-Blue Text */
+            text-decoration: none; transition: 0.3s; cursor: pointer; font-size: 1rem;
+        }
+        /* Active State - Bright Blue */
+        .nav-links li a:hover, .nav-links li a.active-link {
+            background-color: #007bff; /* Primary Blue */
+            color: white;
+        }
+        .nav-links i { width: 25px; text-align: center; margin-right: 10px; }
+
+        /* --- SIDEBAR FOOTER (LOGOUT) --- */
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid #1f3a56;
+            background-color: #081b2e;
+        }
+
+        .btn-logout {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 12px 0;
+            background-color: transparent;
+            color: #dc3545; /* Standard Danger Red */
+            border: 1px solid #dc3545;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .btn-logout:hover {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        /* Main Content */
+        .main-content { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; }
+        .dashboard-top-bar {
+            background-color: white; padding: 20px 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e0e0e0;
+        }
+        .date-widget { background-color: #f8f9fa; padding: 10px 20px; border-radius: 50px; border: 1px solid #ddd; color: #555; font-weight: 600; }
+
+        .content-container { padding: 30px; }
+        .section-view { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .section-view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* --- EMPLOYEE SPECIFIC STYLES --- */
+
+        /* Balance Cards */
+        .balance-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+        .balance-card {
+            background: white; padding: 20px; border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: center;
+            border-bottom: 4px solid #007bff; /* Blue Border */
+        }
+        .balance-card h4 { margin: 0; color: #666; font-size: 0.9rem; text-transform: uppercase; }
+        .balance-card .val { font-size: 2rem; font-weight: bold; color: #333; margin: 10px 0; }
+
+        /* Attendance Clock Section */
+        .clock-container {
+            background: linear-gradient(135deg, #0056b3, #007bff);
+            color: white; padding: 30px; border-radius: 10px; text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 86, 179, 0.3); margin-bottom: 30px;
+        }
+        .digital-clock { font-size: 3rem; font-weight: bold; letter-spacing: 2px; margin-bottom: 10px; font-family: 'Courier New', Courier, monospace; }
+        .date-display { font-size: 1.2rem; margin-bottom: 20px; opacity: 0.9; }
+
+        .btn-punch {
+            padding: 15px 40px; font-size: 1.2rem; border: none; border-radius: 50px;
+            cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;
+        }
+        .btn-in { background-color: white; color: #0056b3; } 
+        .btn-out { background-color: #d32f2f; color: white; }
+        .btn-punch:active { transform: scale(0.95); }
+
+        /* Tables */
+        .styled-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .styled-table thead tr { background-color: #f8f9fa; text-align: left; }
+        .styled-table th, .styled-table td { padding: 15px; border-bottom: 1px solid #eee; }
+        .styled-table tbody tr:last-of-type td { border-bottom: 2px solid #007bff; } 
+
+        /* Request Form */
+        .form-card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); max-width: 600px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 1rem; box-sizing: border-box; }
+
+        .btn-submit {
+            background-color: #0056b3; color: white; padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; width: 100%;
+        }
+        .btn-submit:hover { background-color: #004494; }
+
+        .btn-delete { background-color: #dc3545; color: white; padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; margin-left: 10px; display: none; }
+
+        /* Badges */
+        .badge { padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+        .bg-pending { background-color: #fff3cd; color: #856404; }
+        .bg-approved { background-color: #d4edda; color: #155724; }
+        .bg-denied { background-color: #f8d7da; color: #721c24; }
+
+        /* Announcement Cards */
+        .announce-card { background: white; border-left: 5px solid #ffc107; padding: 20px; margin-bottom: 15px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .announce-card.urgent { border-left-color: #dc3545; background-color: #fff8f8; }
+        .announce-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .announce-title { font-weight: bold; font-size: 1.1rem; }
+        .announce-date { color: #888; font-size: 0.85rem; }
+
+        /* --- CALENDAR STYLES --- */
+        .agenda-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .calendar-header { display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center; }
+        .calendar-nav button { background: #e3f2fd; border: 1px solid #bbdefb; padding: 5px 15px; cursor: pointer; border-radius: 4px; color: #0056b3; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; text-align: center; }
+        .day-name { font-weight: bold; color: #555; padding: 10px 0; }
+        
+        .calendar-day { 
+            height: 100px; border: 1px solid #eee; padding: 5px; position: relative; transition: 0.2s; 
+            display: flex; flex-direction: column; align-items: flex-start; cursor: pointer; /* Added Pointer */
+        }
+        
+        .calendar-day:hover { background-color: #f0f8ff; border-color: #007bff; }
+        .day-number { font-weight: bold; font-size: 0.9rem; margin-bottom: 5px; width: 100%; text-align: right; color: #666;}
+        .calendar-day.padding { background-color: #fcfcfc; cursor: default; }
+        .calendar-day.current-day { background-color: #e3f2fd; border: 1px solid #007bff; }
+        .event-badge { background-color: #007bff; color: white; font-size: 0.7rem; padding: 3px 5px; border-radius: 3px; margin-bottom: 2px; width: 90%; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: bold; }
+
+        /* --- MODAL STYLES (Added for Actions) --- */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-content {
+            background: white; padding: 25px; border-radius: 8px; width: 50%; max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative; border-top: 5px solid #007bff;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
+        .close-btn { cursor: pointer; font-size: 1.5rem; color: #aaa; }
+        .close-btn:hover { color: #333; }
+
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+
+    <aside class="sidebar">
+        <div class="brand-logo">
+            <img src="aiinfo.webp" alt="AI Infotech Logo" class="sidebar-logo">
+            </div>
+
+        <ul class="nav-links">
+            <li><a onclick="showSection('dashboard')" id="link-dashboard" class="active-link"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+            <li><a onclick="showSection('attendance')" id="link-attendance"><i class="fa-solid fa-clock"></i> Attendance</a></li>
+            <li><a onclick="showSection('agenda')" id="link-agenda"><i class="fa-solid fa-calendar-days"></i> Agenda</a></li>
+            <li><a onclick="showSection('requests')" id="link-requests"><i class="fa-solid fa-paper-plane"></i> My Requests</a></li>
+            <li><a onclick="showSection('announcements')" id="link-announcements"><i class="fa-solid fa-bullhorn"></i> Announcements</a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <a href="index.html" class="btn-logout">
+                <i class="fa-solid fa-power-off"></i> &nbsp; Logout
+            </a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+
+        <div class="dashboard-top-bar">
+            <div>
+                <h2 style="margin:0;">Hello, <span id="empName">User</span></h2>
+                <p style="margin:5px 0 0 0; color:#666;">Have a productive day!</p>
+                <p style="margin:2px 0 0 0; color:#666; font-weight: bold; font-size: 0.9rem;">Employee Portal</p>
+            </div>
+            <div class="date-widget">
+                <i class="fa-regular fa-calendar"></i>
+                <span id="currentDate">Loading...</span>
+            </div>
+        </div>
+
+        <div class="content-container">
+
+            <div id="dashboard" class="section-view active">
+                <h3>Leave Balance</h3>
+                <div class="balance-grid">
+                    <div class="balance-card">
+                        <h4>Casual Leave</h4>
+                        <div class="val">8.0</div>
+                        <small>Available</small>
+                    </div>
+                    <div class="balance-card">
+                        <h4>Sick Leave</h4>
+                        <div class="val">5.5</div>
+                        <small>Available</small>
+                    </div>
+                    <div class="balance-card">
+                        <h4>Privilege Leave</h4>
+                        <div class="val">12.0</div>
+                        <small>Available</small>
+                    </div>
+                    <div class="balance-card" style="border-bottom-color: #ff9800;">
+                        <h4>Permissions</h4>
+                        <div class="val">2</div>
+                        <small>Used this month</small>
+                    </div>
+                </div>
+
+                <h3>Recent Activity</h3>
+                <table class="styled-table">
+                    <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Activity</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>Today</td>
+                        <td>Login Detected</td>
+                        <td><span class="badge bg-approved">Active</span></td>
+                    </tr>
+                    <tr>
+                        <td>Yesterday</td>
+                        <td>Attendance Marked</td>
+                        <td><span class="badge bg-approved">Present</span></td>
+                    </tr>
+                    <tr>
+                        <td>05 Dec 2025</td>
+                        <td>Leave Request (Sick)</td>
+                        <td><span class="badge bg-approved">Approved</span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="attendance" class="section-view">
+                <h3>Mark Attendance</h3>
+                <br>
+                <div class="clock-container">
+                    <div class="date-display" id="clockDate">Monday, 12 December 2025</div>
+                    <div class="digital-clock" id="digitalClock">09:41:05 AM</div>
+
+                    <button id="punchBtn" class="btn-punch btn-in" onclick="toggleAttendance()">
+                        <i class="fa-solid fa-fingerprint"></i> CHECK IN
+                    </button>
+                    <p id="statusMsg" style="margin-top: 15px; font-size: 0.9rem;">You are currently checked OUT</p>
+                </div>
+
+                <h3>Attendance History (This Week)</h3>
+                <table class="styled-table" id="attendanceTable">
+                    <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>In Time</th>
+                        <th>Out Time</th>
+                        <th>Total Hours</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>08 Dec 2025</td>
+                        <td>09:02 AM</td>
+                        <td>06:05 PM</td>
+                        <td>9h 03m</td>
+                        <td><span class="badge bg-approved">Present</span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="agenda" class="section-view">
+                <h3>My Schedule / Agenda</h3>
+                <p style="color: #666; font-size: 0.9rem; margin-bottom: 10px;">Click on a day to add, edit, or delete a personal reminder.</p>
+
+                <div class="agenda-card">
+                    <div class="calendar-header">
+                        <h2 id="monthYearDisplay">Month Year</h2>
+                        <div class="calendar-nav">
+                            <button onclick="changeMonth(-1)"><i class="fa-solid fa-chevron-left"></i> Prev</button>
+                            <button onclick="changeMonth(1)">Next <i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid"></div>
+                </div>
+            </div>
+
+            <div id="requests" class="section-view">
+                <div style="display: flex; gap: 30px;">
+                    <div style="flex: 1;">
+                        <h3>Raise New Request</h3>
+                        <div class="form-card">
+                            <form onsubmit="submitRequest(event)">
+                                <div class="form-group">
+                                    <label>Request Type</label>
+                                    <select id="reqType" class="form-control" required>
+                                        <option value="">-- Select Type --</option>
+                                        <option value="Casual Leave">Casual Leave</option>
+                                        <option value="Sick Leave">Sick Leave</option>
+                                        <option value="On Duty">On Duty (OD)</option>
+                                        <option value="Half Day">Half Day</option>
+                                        <option value="Permission">Permission (1-2 hrs)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Date</label>
+                                    <input type="date" id="reqDate" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Reason / Comments</label>
+                                    <textarea id="reqReason" class="form-control" rows="3" placeholder="Explain the reason..." required></textarea>
+                                </div>
+                                <button type="submit" class="btn-submit">Submit Request</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div style="flex: 1;">
+                        <h3>My Request History</h3>
+                        <table class="styled-table" id="reqTable">
+                            <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>Sick Leave</td>
+                                <td>05 Dec 2025</td>
+                                <td><span class="badge bg-approved">Approved</span></td>
+                            </tr>
+                            <tr>
+                                <td>Permission</td>
+                                <td>01 Dec 2025</td>
+                                <td><span class="badge bg-denied">Denied</span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="announcements" class="section-view">
+                <h3>Company Announcements</h3>
+                <br>
+
+                <div class="announce-card urgent">
+                    <div class="announce-header">
+                        <span class="announce-title"><i class="fa-solid fa-triangle-exclamation"></i> SERVER MAINTENANCE</span>
+                        <span class="announce-date">Today</span>
+                    </div>
+                    <p>The main server will be down for maintenance today from 10:00 PM to 11:00 PM. Please save your work.</p>
+                </div>
+
+                <div class="announce-card">
+                    <div class="announce-header">
+                        <span class="announce-title">Upcoming Holiday</span>
+                        <span class="announce-date">2 Days ago</span>
+                    </div>
+                    <p>The office will remain closed next Friday in observance of National Holiday. Enjoy the long weekend!</p>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+</div>
+
+<div id="modal-add-event" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalEventHeader">Manage Personal Event</h3>
+            <span class="close-btn" onclick="closeModal('modal-add-event')">&times;</span>
+        </div>
+        <div class="form-group">
+            <label>Date</label>
+            <input type="text" id="eventDate" class="form-control" readonly style="background-color: #eee;">
+        </div>
+        <div class="form-group">
+            <label>Event Name</label>
+            <input type="text" id="eventTitle" class="form-control" placeholder="Meeting, Reminder, etc.">
+        </div>
+        <div style="display: flex; justify-content: flex-end;">
+            <button class="btn-submit" onclick="saveEvent()">Save</button>
+            <button class="btn-delete" id="btnDeleteEvent" onclick="deleteEvent()">Delete</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 1. Navigation Logic ---
+    function showSection(sectionId) {
+        const sections = document.querySelectorAll('.section-view');
+        sections.forEach(s => s.classList.remove('active'));
+        document.getElementById(sectionId).classList.add('active');
+
+        const links = document.querySelectorAll('.nav-links a');
+        links.forEach(l => l.classList.remove('active-link'));
+        document.getElementById('link-' + sectionId).classList.add('active-link');
+    }
+
+    // --- 2. Live Date & Clock Logic ---
+    function updateDateTime() {
+        const now = new Date();
+        const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('currentDate').innerText = now.toLocaleDateString('en-GB');
+        document.getElementById('clockDate').innerText = now.toLocaleDateString('en-US', dateOptions);
+        document.getElementById('digitalClock').innerText = now.toLocaleTimeString('en-US');
+    }
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+
+    // --- 3. Mock Login Name ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const user = "Employee";
+    document.getElementById('empName').innerText = user;
+
+    // --- 4. Attendance Logic ---
+    let isCheckedIn = false;
+
+    function toggleAttendance() {
+        const btn = document.getElementById('punchBtn');
+        const status = document.getElementById('statusMsg');
+        const table = document.getElementById('attendanceTable').getElementsByTagName('tbody')[0];
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+        if (!isCheckedIn) {
+            isCheckedIn = true;
+            btn.innerHTML = '<i class="fa-solid fa-door-open"></i> CHECK OUT';
+            btn.classList.remove('btn-in');
+            btn.classList.add('btn-out');
+            status.innerText = "You are currently checked IN since " + timeStr;
+            status.style.color = "#0056b3"; 
+            status.style.fontWeight = "bold";
+
+            const newRow = table.insertRow(0);
+            newRow.innerHTML = `<td>Today</td><td>${timeStr}</td><td>--</td><td>--</td><td><span class="badge bg-pending">Active</span></td>`;
+            newRow.id = "currentRow";
+            alert("Checked In Successfully at " + timeStr);
+
+        } else {
+            isCheckedIn = false;
+            btn.innerHTML = '<i class="fa-solid fa-fingerprint"></i> CHECK IN';
+            btn.classList.remove('btn-out');
+            btn.classList.add('btn-in');
+            status.innerText = "You are currently checked OUT";
+            status.style.color = "#666";
+            status.style.fontWeight = "normal";
+
+            const row = document.getElementById('currentRow');
+            if(row) {
+                row.cells[2].innerText = timeStr;
+                row.cells[3].innerText = "Calculating...";
+                row.cells[4].innerHTML = '<span class="badge bg-approved">Present</span>';
+                row.removeAttribute('id');
+            }
+            alert("Checked Out Successfully at " + timeStr);
+        }
+    }
+
+    // --- 5. Request Form Logic ---
+    function submitRequest(event) {
+        event.preventDefault();
+        const type = document.getElementById('reqType').value;
+        const date = document.getElementById('reqDate').value;
+        const reason = document.getElementById('reqReason').value;
+
+        if(!type || !date || !reason) { alert("Please fill all fields"); return; }
+
+        const table = document.getElementById('reqTable').getElementsByTagName('tbody')[0];
+        const newRow = table.insertRow(0);
+        newRow.innerHTML = `<td>${type}</td><td>${date}</td><td><span class="badge bg-pending">Pending</span></td>`;
+        alert("Request Submitted Successfully!");
+        document.querySelector('form').reset();
+    }
+
+    // --- 6. Calendar Logic (With ACTIONS) ---
+    let nav = 0;
+    let clickedDate = null;
+    let events = [
+        { date: '12/25/2025', title: 'Holiday: Christmas' },
+        { date: '1/1/2026', title: 'New Year' }
+    ];
+
+    const calendarGrid = document.getElementById('calendarGrid');
+    const monthYearDisplay = document.getElementById('monthYearDisplay');
+    const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    // Modal Helpers
+    function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
+    function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal-overlay')) {
+            event.target.style.display = 'none';
+        }
+    }
+
+    function loadCalendar() {
+        const dt = new Date();
+        if (nav !== 0) dt.setMonth(new Date().getMonth() + nav);
+
+        const day = dt.getDate();
+        const month = dt.getMonth();
+        const year = dt.getFullYear();
+
+        const firstDayOfMonth = new Date(year, month, 1);
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const paddingDays = new Date(year, month, 1).getDay();
+
+        monthYearDisplay.innerText = `${dt.toLocaleDateString('en-us', { month: 'long' })} ${year}`;
+        calendarGrid.innerHTML = '';
+
+        weekDays.forEach(day => {
+            const daySquare = document.createElement('div');
+            daySquare.classList.add('day-name');
+            daySquare.innerText = day;
+            calendarGrid.appendChild(daySquare);
+        });
+
+        for(let i = 0; i < paddingDays; i++) {
+            const paddingSquare = document.createElement('div');
+            paddingSquare.classList.add('calendar-day', 'padding');
+            calendarGrid.appendChild(paddingSquare);
+        }
+
+        for(let i = 1; i <= daysInMonth; i++) {
+            const daySquare = document.createElement('div');
+            daySquare.classList.add('calendar-day');
+            const dayString = `${month + 1}/${i}/${year}`;
+
+            // Highlight Today
+            const todayObj = new Date();
+            if (i === todayObj.getDate() && nav === 0 && month === todayObj.getMonth() && year === todayObj.getFullYear()) {
+                daySquare.classList.add('current-day');
+            }
+
+            const dayNum = document.createElement('div');
+            dayNum.classList.add('day-number');
+            dayNum.innerText = i;
+            daySquare.appendChild(dayNum);
+
+            // Display Event
+            const dayEvent = events.find(e => e.date === dayString);
+            if (dayEvent) {
+                const eventDiv = document.createElement('div');
+                eventDiv.classList.add('event-badge');
+                eventDiv.innerText = dayEvent.title;
+                daySquare.appendChild(eventDiv);
+            }
+
+            // Click to Add/Edit Event
+            daySquare.addEventListener('click', () => openEventModal(dayString));
+            calendarGrid.appendChild(daySquare);
+        }
+    }
+
+    function changeMonth(direction) {
+        nav += direction;
+        loadCalendar();
+    }
+
+    function openEventModal(dateStr) {
+        clickedDate = dateStr;
+        document.getElementById('eventDate').value = dateStr;
+
+        // Check if event exists
+        const existingEvent = events.find(e => e.date === dateStr);
+        const deleteBtn = document.getElementById('btnDeleteEvent');
+
+        if (existingEvent) {
+            document.getElementById('eventTitle').value = existingEvent.title;
+            deleteBtn.style.display = 'block'; // Show delete button
+        } else {
+            document.getElementById('eventTitle').value = '';
+            deleteBtn.style.display = 'none'; // Hide delete button
+        }
+
+        openModal('modal-add-event');
+    }
+
+    function saveEvent() {
+        const title = document.getElementById('eventTitle').value;
+        if (title) {
+            const existingIndex = events.findIndex(e => e.date === clickedDate);
+            if (existingIndex > -1) {
+                events[existingIndex].title = title; // Update
+            } else {
+                events.push({ date: clickedDate, title: title }); // Add
+            }
+            closeModal('modal-add-event');
+            loadCalendar();
+        }
+    }
+
+    function deleteEvent() {
+        events = events.filter(e => e.date !== clickedDate);
+        closeModal('modal-add-event');
+        loadCalendar();
+    }
+
+    // Init Calendar
+    loadCalendar();
+
+</script>
+</body>
+</html>
