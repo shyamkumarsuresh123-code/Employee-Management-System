@@ -38,7 +38,7 @@
         .balance-card h4 { margin: 0; color: #666; font-size: 0.9rem; text-transform: uppercase; }
         .balance-card .val { font-size: 2rem; font-weight: bold; color: #333; margin: 10px 0; }
         
-        /* CLOCK SECTION (Updated for Seconds) */
+        /* CLOCK SECTION */
         .clock-container { background: linear-gradient(135deg, #0056b3, #007bff); color: white; padding: 30px; border-radius: 10px; text-align: center; box-shadow: 0 4px 15px rgba(0, 86, 179, 0.3); margin-bottom: 30px; }
         .digital-clock { font-size: 3rem; font-weight: bold; letter-spacing: 2px; margin-bottom: 10px; font-family: 'Courier New', Courier, monospace; }
         .date-display { font-size: 1.2rem; margin-bottom: 20px; opacity: 0.9; }
@@ -58,10 +58,13 @@
         .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
         .form-control { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 1rem; box-sizing: border-box; }
         .btn-submit { background-color: #0056b3; color: white; padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; width: 100%; }
+        .btn-submit:hover { background-color: #004494; }
         .badge { padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
         .bg-pending { background-color: #fff3cd; color: #856404; }
         .bg-approved { background-color: #d4edda; color: #155724; }
         .bg-denied { background-color: #f8d7da; color: #721c24; }
+        .btn-reason { background-color: #6c757d; color: white; border: none; padding: 3px 8px; font-size: 0.75rem; border-radius: 3px; cursor: pointer; margin-left: 8px; }
+        .btn-reason:hover { background-color: #5a6268; }
 
         /* OTHERS */
         .announce-card { background: white; border-left: 5px solid #ffc107; padding: 20px; margin-bottom: 15px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
@@ -76,18 +79,20 @@
         .calendar-nav button { background: #e3f2fd; border: 1px solid #bbdefb; padding: 5px 15px; cursor: pointer; border-radius: 4px; color: #0056b3; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; text-align: center; }
         .day-name { font-weight: bold; color: #555; padding: 10px 0; }
-        .calendar-day { height: 100px; border: 1px solid #eee; padding: 5px; position: relative; transition: 0.2s; display: flex; flex-direction: column; align-items: flex-start; cursor: pointer; }
+        .calendar-day { height: 100px; border: 1px solid #eee; padding: 5px; position: relative; transition: 0.2s; display: flex; flex-direction: column; align-items: flex-start; cursor: default; }
         .calendar-day:hover { background-color: #f0f8ff; border-color: #007bff; }
         .day-number { font-weight: bold; font-size: 0.9rem; margin-bottom: 5px; width: 100%; text-align: right; color: #666;}
         .calendar-day.padding { background-color: #fcfcfc; cursor: default; }
         .calendar-day.current-day { background-color: #e3f2fd; border: 1px solid #007bff; }
-        .event-badge { background-color: #007bff; color: white; font-size: 0.7rem; padding: 3px 5px; border-radius: 3px; margin-bottom: 2px; width: 90%; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: bold; }
         
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: white; padding: 25px; border-radius: 8px; width: 50%; max-width: 400px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative; border-top: 5px solid #007bff; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
-        .close-btn { cursor: pointer; font-size: 1.5rem; color: #aaa; }
-        .btn-reason { background-color: #6c757d; color: white; border: none; padding: 3px 8px; font-size: 0.75rem; border-radius: 3px; cursor: pointer; margin-left: 8px; }
+        /* Event Badges */
+        .event-badge { font-size: 0.75rem; padding: 3px 6px; border-radius: 3px; margin-bottom: 3px; width: 90%; text-align: left; font-weight: bold; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .badge-meeting { background-color: #007bff; } 
+        .badge-urgent { background-color: #dc3545; } 
+        .badge-holiday { background-color: #28a745; } 
+        .badge-default { background-color: #ffc107; color: black; }
+        
+        .btn-view-more { background: none; border: none; color: #0056b3; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -151,6 +156,24 @@
                 </table>
             </div>
 
+            <div id="agenda" class="section-view">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3>My Schedule / Agenda</h3>
+                    <button class="btn-view-more" onclick="fetchSheetEvents()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+                </div>
+                <div class="agenda-card">
+                    <div class="calendar-header">
+                        <h2 id="monthYearDisplay">Month Year</h2>
+                        <div class="calendar-nav">
+                            <button onclick="changeMonth(-1)">Prev</button>
+                            <button onclick="changeMonth(1)">Next</button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid"></div>
+                    <p style="text-align: center; color: #666; margin-top:10px;"><small id="calLoading" style="display:none;">Loading events...</small></p>
+                </div>
+            </div>
+
             <div id="requests" class="section-view">
                  <div style="display: flex; gap: 30px;">
                     <div style="flex: 1;">
@@ -174,38 +197,12 @@
                 </div>
             </div>
             
-            <div id="agenda" class="section-view">
-                <h3>My Schedule / Agenda</h3>
-                <div class="agenda-card">
-                    <div class="calendar-header">
-                        <h2 id="monthYearDisplay">Month Year</h2>
-                        <div class="calendar-nav">
-                            <button onclick="changeMonth(-1)">Prev</button>
-                            <button onclick="changeMonth(1)">Next</button>
-                        </div>
-                    </div>
-                    <div class="calendar-grid" id="calendarGrid"></div>
-                </div>
-            </div>
-            
             <div id="announcements" class="section-view">
                 <h3>Company Announcements</h3>
                 <div class="announce-card urgent"><div class="announce-header"><span class="announce-title">SERVER MAINTENANCE</span></div><p>Down 10PM-11PM.</p></div>
             </div>
         </div>
     </main>
-</div>
-
-<div id="modal-add-event" class="modal-overlay">
-    <div class="modal-content">
-        <div class="modal-header"><h3 id="modalEventHeader">Manage Event</h3><span class="close-btn" onclick="closeModal('modal-add-event')">&times;</span></div>
-        <div class="form-group"><label>Date</label><input type="text" id="eventDate" class="form-control" readonly></div>
-        <div class="form-group"><label>Event Name</label><input type="text" id="eventTitle" class="form-control"></div>
-        <div style="display: flex; justify-content: flex-end;">
-            <button class="btn-submit" onclick="saveEvent()">Save</button>
-            <button class="btn-delete" id="btnDeleteEvent" onclick="deleteEvent()">Delete</button>
-        </div>
-    </div>
 </div>
 
 <script>
@@ -215,48 +212,44 @@
         document.getElementById(sectionId).classList.add('active');
         document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active-link'));
         document.getElementById('link-' + sectionId).classList.add('active-link');
+        
+        // Auto-load calendar if tab is clicked
+        if(sectionId === 'agenda') fetchSheetEvents();
     }
     
-    // --- 2. Clock (NOW WITH SECONDS) ---
+    // --- 2. Clock ---
     function updateDateTime() {
         const now = new Date();
         document.getElementById('currentDate').innerText = now.toLocaleDateString('en-GB');
         document.getElementById('clockDate').innerText = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-        // Forces HH:MM:SS format
         document.getElementById('digitalClock').innerText = now.toLocaleTimeString('en-US', { hour12: true });
     }
     setInterval(updateDateTime, 1000);
     updateDateTime();
     document.getElementById('empName').innerText = "Employee";
 
-    // --- 3. ATTENDANCE LOGIC (FIXED TO PREVENT DECIMALS) ---
-    
-    // ✅ YOUR SHEETDB URL
-    const API_URL = "https://sheetdb.io/api/v1/arh117tr3hvvy"; 
+    // --- 3. ATTENDANCE LOGIC (DECIMAL FIX INCLUDED) ---
+    const ATTENDANCE_API = "https://sheetdb.io/api/v1/arh117tr3hvvy"; 
     
     let isCheckedIn = false;
     let checkInTimeObj = null;
 
-    // Load state from LocalStorage (Handle Refresh)
     window.onload = function() {
+        // Attendance Restore
         const storedCheckIn = localStorage.getItem('checkInTime');
         if (storedCheckIn) {
             isCheckedIn = true;
             checkInTimeObj = new Date(storedCheckIn);
-            
-            // Update UI to "Checked In"
             const btn = document.getElementById('punchBtn');
             const status = document.getElementById('statusMsg');
-            
             btn.innerHTML = '<i class="fa-solid fa-door-open"></i> CHECK OUT';
-            btn.classList.remove('btn-in');
-            btn.classList.add('btn-out');
-            
+            btn.classList.remove('btn-in'); btn.classList.add('btn-out');
             const timeStr = checkInTimeObj.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit', second:'2-digit', hour12: true});
             status.innerText = "You are currently checked IN since " + timeStr;
-            status.style.color = "#0056b3";
-            status.style.fontWeight = "bold";
+            status.style.color = "#0056b3"; status.style.fontWeight = "bold";
         }
+        // Load events silently in background
+        fetchSheetEvents();
     };
 
     function toggleAttendance() {
@@ -265,64 +258,37 @@
         const table = document.getElementById('attendanceTable').getElementsByTagName('tbody')[0];
         
         const now = new Date();
-        // Time with seconds
         const timeStr = now.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit', second:'2-digit', hour12: true});
-        
-        // --- KEY FIX: Add an apostrophe ' to force Google Sheets to treat as TEXT ---
         const sheetDateStr = "'" + now.toLocaleDateString('en-GB'); 
         const sheetTimeStr = "'" + timeStr;
 
         const actionType = isCheckedIn ? "CHECK_OUT" : "CHECK_IN";
-
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
         btn.disabled = true;
 
         if (actionType === "CHECK_IN") {
-            // --- CHECK IN LOGIC ---
-            
             localStorage.setItem('checkInTime', now.toISOString());
-            localStorage.setItem('checkInTimeStr', timeStr); // Store clean time for later
+            localStorage.setItem('checkInTimeStr', timeStr); 
             checkInTimeObj = now;
 
-            const data = {
-                "Date": sheetDateStr,       // Send as '12/12/2025
-                "InTime": sheetTimeStr,     // Send as '10:30:05 AM (Prevents 0.7354...)
-                "OutTime": "",
-                "WorkingPeriod": "Active...",
-                "Action": "Active"
-            };
+            const data = { "Date": sheetDateStr, "InTime": sheetTimeStr, "OutTime": "", "WorkingPeriod": "Active...", "Action": "Active" };
 
-            fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ data: data })
-            })
-            .then(res => res.json())
-            .then(result => {
-                btn.disabled = false;
-                isCheckedIn = true;
-                
+            fetch(ATTENDANCE_API, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: data })
+            }).then(res => res.json()).then(result => {
+                btn.disabled = false; isCheckedIn = true;
                 btn.innerHTML = '<i class="fa-solid fa-door-open"></i> CHECK OUT';
-                btn.classList.remove('btn-in');
-                btn.classList.add('btn-out');
-                
+                btn.classList.remove('btn-in'); btn.classList.add('btn-out');
                 status.innerText = "You are currently checked IN since " + timeStr;
-                status.style.color = "#0056b3";
-                status.style.fontWeight = "bold";
-                
+                status.style.color = "#0056b3"; status.style.fontWeight = "bold";
                 const newRow = table.insertRow(0);
                 newRow.innerHTML = `<td>${now.toLocaleDateString('en-GB')}</td><td>${timeStr}</td><td>--</td><td>Active...</td><td><span class="badge bg-pending">Active</span></td>`;
                 newRow.id = "currentRow"; 
-                
                 alert("Checked In Successfully!");
             });
-
         } else {
-            // --- CHECK OUT LOGIC ---
-            
             let durationStr = "N/A";
             let startTimeStr = localStorage.getItem('checkInTimeStr') || "---";
-
             if(checkInTimeObj) {
                 const diffMs = now - checkInTimeObj;
                 const totalSeconds = Math.floor(diffMs / 1000);
@@ -331,102 +297,81 @@
                 const secs = totalSeconds % 60;
                 durationStr = `${hours}h ${mins}m ${secs}s`;
             }
+            localStorage.removeItem('checkInTime'); localStorage.removeItem('checkInTimeStr');
+            
+            const data = { "Date": sheetDateStr, "InTime": "'" + startTimeStr, "OutTime": sheetTimeStr, "WorkingPeriod": durationStr, "Action": "Completed" };
 
-            localStorage.removeItem('checkInTime');
-            localStorage.removeItem('checkInTimeStr');
-
-            const data = {
-                "Date": sheetDateStr,
-                "InTime": "'" + startTimeStr, // Force text format
-                "OutTime": sheetTimeStr,      // Force text format
-                "WorkingPeriod": durationStr,
-                "Action": "Completed"
-            };
-
-            fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ data: data })
-            })
-            .then(res => res.json())
-            .then(result => {
-                btn.disabled = false;
-                isCheckedIn = false;
-                
+            fetch(ATTENDANCE_API, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: data })
+            }).then(res => res.json()).then(result => {
+                btn.disabled = false; isCheckedIn = false;
                 btn.innerHTML = '<i class="fa-solid fa-fingerprint"></i> CHECK IN';
-                btn.classList.remove('btn-out');
-                btn.classList.add('btn-in');
-                
-                status.innerText = "You are currently checked OUT";
-                status.style.color = "#666";
-                status.style.fontWeight = "normal";
-                
+                btn.classList.remove('btn-out'); btn.classList.add('btn-in');
+                status.innerText = "You are currently checked OUT"; status.style.color = "#666"; status.style.fontWeight = "normal";
                 const row = document.getElementById('currentRow');
-                if(row) {
-                    row.cells[2].innerText = timeStr; 
-                    row.cells[3].innerText = durationStr; 
-                    row.cells[4].innerHTML = '<span class="badge bg-approved">Present</span>';
-                    row.removeAttribute('id');
-                } else {
-                    const newRow = table.insertRow(0);
-                    newRow.innerHTML = `<td>${now.toLocaleDateString('en-GB')}</td><td>${startTimeStr}</td><td>${timeStr}</td><td>${durationStr}</td><td><span class="badge bg-approved">Present</span></td>`;
-                }
+                if(row) { row.cells[2].innerText = timeStr; row.cells[3].innerText = durationStr; row.cells[4].innerHTML = '<span class="badge bg-approved">Present</span>'; row.removeAttribute('id'); }
+                else { const newRow = table.insertRow(0); newRow.innerHTML = `<td>${now.toLocaleDateString('en-GB')}</td><td>${startTimeStr}</td><td>${timeStr}</td><td>${durationStr}</td><td><span class="badge bg-approved">Present</span></td>`; }
                 alert("Checked Out! Total Time: " + durationStr);
             });
         }
     }
 
-    // --- 4. Requests ---
-    function submitRequest(event) {
-        event.preventDefault();
-        alert("Request Submitted!");
-        document.querySelector('form').reset();
-    }
-    function showReason() { alert("Insufficient leave balance."); }
+    function submitRequest(event) { event.preventDefault(); alert("Request Submitted!"); document.querySelector('form').reset(); }
 
-    // --- 5. Calendar ---
-    let nav = 0;
-    let clickedDate = null;
-    let events = [{ date: '12/25/2025', title: 'Holiday' }];
+    // --- 4. CALENDAR LOGIC (READ-ONLY) ---
+    // ✅ SAME EVENT SHEET API AS MANAGEMENT
+    let EVENTS_API = "https://sheetdb.io/api/v1/ixqhkw8b3j8e6"; 
+    if(EVENTS_API.endsWith('/')) EVENTS_API = EVENTS_API.slice(0, -1);
+
+    let nav = 0; 
+    let events = [];
     const calendarGrid = document.getElementById('calendarGrid');
+
+    function fetchSheetEvents() {
+        document.getElementById('calLoading').style.display = 'block';
+        fetch(EVENTS_API).then(res => res.json()).then(data => {
+            // MAP KEYS (Capitalized in Sheet -> lowercase in JS)
+            events = data.map(ev => ({
+                id: ev.Id || ev.id,
+                date: ev.Date || ev.date,
+                title: ev.Title || ev.title,
+                type: ev.Type || ev.type
+            }));
+            document.getElementById('calLoading').style.display = 'none';
+            loadCalendar(); 
+        }).catch(err => { document.getElementById('calLoading').innerText = "Failed to load events."; });
+    }
     
     function loadCalendar() {
         const dt = new Date();
         if (nav !== 0) dt.setMonth(new Date().getMonth() + nav);
-        const month = dt.getMonth();
-        const year = dt.getFullYear();
-        const firstDay = new Date(year, month, 1);
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const month = dt.getMonth(); const year = dt.getFullYear();
+        const firstDay = new Date(year, month, 1); const daysInMonth = new Date(year, month + 1, 0).getDate();
         const padding = firstDay.getDay();
 
         document.getElementById('monthYearDisplay').innerText = dt.toLocaleDateString('en-us', { month: 'long', year: 'numeric' });
         calendarGrid.innerHTML = '';
-        ['S','M','T','W','T','F','S'].forEach(d => {
-            const div = document.createElement('div'); div.classList.add('day-name'); div.innerText = d; calendarGrid.appendChild(div);
-        });
-
-        for(let i=0; i<padding; i++) {
-             const div = document.createElement('div'); div.classList.add('calendar-day','padding'); calendarGrid.appendChild(div);
-        }
+        ['S','M','T','W','T','F','S'].forEach(d => { const div = document.createElement('div'); div.classList.add('day-name'); div.innerText = d; calendarGrid.appendChild(div); });
+        for(let i=0; i<padding; i++) { const div = document.createElement('div'); div.classList.add('calendar-day','padding'); calendarGrid.appendChild(div); }
         for(let i=1; i<=daysInMonth; i++) {
             const div = document.createElement('div'); div.classList.add('calendar-day');
             div.innerHTML = `<div class="day-number">${i}</div>`;
             const dateStr = `${month+1}/${i}/${year}`;
-            const ev = events.find(e => e.date === dateStr);
-            if(ev) div.innerHTML += `<div class="event-badge">${ev.title}</div>`;
-            div.onclick = () => openEventModal(dateStr);
+            
+            // Render Badges
+            const dayEvents = events.filter(e => e.date === dateStr);
+            dayEvents.forEach(ev => {
+                const badge = document.createElement('div');
+                badge.className = `event-badge ${ev.type || 'badge-default'}`;
+                badge.innerText = ev.title;
+                div.appendChild(badge);
+            });
             calendarGrid.appendChild(div);
         }
     }
     
     function changeMonth(d) { nav += d; loadCalendar(); }
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    function openEventModal(d) { clickedDate = d; document.getElementById('eventDate').value = d; openModal('modal-add-event'); }
-    function saveEvent() { events.push({date: clickedDate, title: document.getElementById('eventTitle').value}); closeModal('modal-add-event'); loadCalendar(); }
-    function deleteEvent() { closeModal('modal-add-event'); }
     
-    loadCalendar();
 </script>
 </body>
 </html>
