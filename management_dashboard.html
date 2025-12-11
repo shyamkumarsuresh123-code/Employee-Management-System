@@ -59,7 +59,6 @@
         .list-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .list-box h4 { margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         
-        /* Employee Report Table */
         .report-table-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .styled-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         .styled-table thead tr { background-color: #f8f9fa; text-align: left; }
@@ -94,10 +93,18 @@
         .calendar-nav button { background: #fff3cd; border: 1px solid #ffeeba; padding: 5px 15px; cursor: pointer; border-radius: 4px; color: #856404; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; text-align: center; }
         .day-name { font-weight: bold; color: #555; padding: 10px 0; }
+        
         .calendar-day { height: 100px; border: 1px solid #eee; padding: 5px; position: relative; cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; }
         .calendar-day:hover { background-color: #fff9db; border-color: #ffc107; }
         .calendar-day.current-day { background-color: #fff3cd; border: 1px solid #ffc107; }
-        .event-badge { background-color: #ffc107; color: #212529; font-size: 0.7rem; padding: 3px 5px; border-radius: 3px; margin-bottom: 2px; width: 90%; text-align: left; font-weight: bold; }
+        
+        /* Event Badges */
+        .event-badge { font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; margin-bottom: 3px; width: 90%; text-align: left; font-weight: bold; color: white; cursor: pointer; transition: 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 1px 2px rgba(0,0,0,0.1); z-index: 10; }
+        .event-badge:hover { opacity: 0.9; transform: scale(1.02); }
+        .badge-meeting { background-color: #007bff; }
+        .badge-urgent { background-color: #dc3545; }
+        .badge-holiday { background-color: #28a745; }
+        .badge-default { background-color: #ffc107; color: black; }
 
         /* Forms */
         .form-card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); max-width: 800px; margin: 0 auto; border-top: 3px solid #ffc107; }
@@ -116,10 +123,7 @@
 <div class="wrapper">
 
     <aside class="sidebar">
-        <div class="brand-logo">
-            <img src="aiinfo.webp" alt="AI Infotech Logo" class="sidebar-logo">
-        </div>
-
+        <div class="brand-logo"><img src="aiinfo.webp" alt="AI Infotech Logo" class="sidebar-logo"></div>
         <ul class="nav-links">
             <li><a onclick="showSection('dashboard')" class="active-link"><i class="fa-solid fa-gauge"></i> Dashboard</a></li>
             <li><a onclick="showSection('agenda')"><i class="fa-solid fa-calendar-days"></i> Agenda</a></li>
@@ -145,53 +149,33 @@
                 </details>
             </li>
         </ul>
-
-        <div class="sidebar-footer">
-            <a href="index.html" class="btn-logout">
-                <i class="fa-solid fa-power-off"></i> &nbsp; Logout
-            </a>
-        </div>
+        <div class="sidebar-footer"><a href="index.html" class="btn-logout"><i class="fa-solid fa-power-off"></i> &nbsp; Logout</a></div>
     </aside>
 
     <main class="main-content">
-
         <div class="dashboard-top-bar">
-            <div class="welcome-msg">
-                <h2>Welcome, <strong>Admin</strong></h2>
-                <p>Management Portal</p>
-            </div>
-            <div class="date-widget">
-                <i class="fa-regular fa-calendar"></i>
-                <span id="currentDate">Loading...</span>
-            </div>
+            <div class="welcome-msg"><h2>Welcome, <strong>Admin</strong></h2><p>Management Portal</p></div>
+            <div class="date-widget"><i class="fa-regular fa-calendar"></i> <span id="currentDate">Loading...</span></div>
         </div>
 
         <div class="content-container">
-
             <div id="dashboard" class="section-view active">
-                <h3>Dashboard Overview</h3>
-                <br>
+                <h3>Dashboard Overview</h3><br>
                 <div class="dashboard-grid">
-                    <div class="stat-card">
-                        <h4>Total Employees</h4>
-                        <div class="count">124</div>
-                        <button class="btn-view-more" onclick="openModal('modal-employees')">View More</button>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Today's Absentees</h4>
-                        <div class="count" style="color: #dc3545;">4</div>
-                        <button class="btn-view-more" onclick="openModal('modal-absentees')">View More</button>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Pending Requests</h4>
-                        <div class="count" style="color: #d39e00;">8</div>
-                        <button class="btn-view-more" onclick="showSection('emp-requests')">View More</button>
-                    </div>
+                    <div class="stat-card"><h4>Total Employees</h4><div class="count">124</div><button class="btn-view-more" onclick="openModal('modal-employees')">View More</button></div>
+                    <div class="stat-card"><h4>Today's Absentees</h4><div class="count" style="color: #dc3545;">4</div><button class="btn-view-more" onclick="openModal('modal-absentees')">View More</button></div>
+                    <div class="stat-card"><h4>Pending Requests</h4><div class="count" style="color: #d39e00;">8</div><button class="btn-view-more" onclick="showSection('emp-requests')">View More</button></div>
                 </div>
             </div>
 
             <div id="agenda" class="section-view">
-                <h3>Team Agenda</h3>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3>Team Agenda (Live SheetDB)</h3>
+                    <button class="btn-view-more" onclick="fetchSheetEvents()">Refresh Calendar</button>
+                </div>
+                <p style="color:#666; font-size:0.9rem; margin-top:5px;">
+                    <i class="fa-solid fa-circle-info"></i> Click <b>Date</b> to Add. Click <b>Event Label</b> to Edit/Delete.
+                </p>
                 <div class="agenda-card">
                     <div class="calendar-header">
                         <h2 id="monthYearDisplay">Month Year</h2>
@@ -201,12 +185,12 @@
                         </div>
                     </div>
                     <div class="calendar-grid" id="calendarGrid"></div>
+                    <p style="text-align: center; color: #666; margin-top:10px;"><small id="calLoading" style="display:none;">Syncing...</small></p>
                 </div>
             </div>
 
             <div id="emp-requests" class="section-view">
-                <h3>Employee Requests</h3>
-                <br>
+                <h3>Employee Requests</h3><br>
                 <div class="req-card" id="req-1">
                     <div class="req-info"><h5>Michael Brown</h5><p>Subject: Leave Application (Sick) - 2 Days</p></div>
                     <div><button class="action-btn btn-approve" onclick="approveRequest('req-1')">Approve</button><button class="action-btn btn-deny" onclick="openDenyModal('req-1')">Deny</button></div>
@@ -219,31 +203,17 @@
                     <button class="btn-view-more" id="toggleReportBtn" onclick="toggleAttendanceView()">View Reports</button>
                 </div>
                 <br>
-
                 <div id="attendance-daily">
                     <div class="two-col-grid">
-                        <div class="list-box">
-                            <h4 style="color: #28a745;">Present Today (120)</h4>
-                            <ul class="data-list">
-                                <li><span class="avatar">JD</span> John Doe</li>
-                                <li><span class="avatar">AS</span> Alice Smith</li>
-                            </ul>
-                        </div>
-                        <div class="list-box">
-                            <h4 style="color: #dc3545;">On Leave (4)</h4>
-                            <ul class="data-list">
-                                <li><span class="avatar" style="background:#f8d7da; color:#721c24;">MW</span> Mark Williams (Sick)</li>
-                            </ul>
-                        </div>
+                        <div class="list-box"><h4 style="color: #28a745;">Present Today (120)</h4><ul class="data-list"><li><span class="avatar">JD</span> John Doe</li></ul></div>
+                        <div class="list-box"><h4 style="color: #dc3545;">On Leave (4)</h4><ul class="data-list"><li><span class="avatar" style="background:#f8d7da; color:#721c24;">MW</span> Mark Williams</li></ul></div>
                     </div>
                 </div>
-
                 <div id="attendance-reports" style="display: none;">
                     <h4>Statistical Reports</h4>
                     <div class="report-grid">
-                        <div class="report-card"><h5>Weekly Attendance</h5><p>98%</p><span style="font-size: 0.8rem; color: green;">+2% from last week</span></div>
-                        <div class="report-card"><h5>Monthly Attendance</h5><p>95%</p><span style="font-size: 0.8rem; color: #ffc107;">Stable</span></div>
-                        <div class="report-card"><h5>Yearly Attendance</h5><p>92%</p><span style="font-size: 0.8rem; color: red;">-1% from last year</span></div>
+                        <div class="report-card"><h5>Weekly Attendance</h5><p>98%</p></div>
+                        <div class="report-card"><h5>Monthly Attendance</h5><p>95%</p></div>
                     </div>
                 </div>
             </div>
@@ -253,42 +223,18 @@
                     <h3>Employee Attendance Sheet (Live)</h3>
                     <button class="btn-view-more" onclick="downloadCSV()"><i class="fa-solid fa-file-excel"></i> Download CSV</button>
                 </div>
-                <p style="color: #666; margin-bottom: 20px;">Fetching data directly from Google Sheets</p>
-                
+                <p style="color: #666; margin-bottom: 20px;">Fetching data from SheetDB...</p>
                 <div class="report-table-container">
                     <i id="sheetSpinner" class="fa-solid fa-spinner fa-spin spinner"></i>
                     <table class="styled-table" id="sheetTable" style="display: none;">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>In Time</th>
-                                <th>Out Time</th>
-                                <th>Working Period</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sheetBody">
-                            </tbody>
+                        <thead><tr><th>Date</th><th>In Time</th><th>Out Time</th><th>Working Period</th><th>Action</th></tr></thead>
+                        <tbody id="sheetBody"></tbody>
                     </table>
                 </div>
             </div>
 
-            <div id="announce-general" class="section-view">
-                <h3>Create General Announcement</h3>
-                <div class="form-card">
-                    <div class="form-group"><label>Message Content</label><textarea class="form-control" rows="4"></textarea></div>
-                    <button class="btn-submit">Post Announcement</button>
-                </div>
-            </div>
-
-            <div id="announce-urgent" class="section-view">
-                <h3 style="color: #dc3545;">Create Urgent Announcement</h3>
-                <div class="form-card" style="border-top: 5px solid #dc3545;">
-                    <div class="form-group"><label>Message Content</label><textarea class="form-control" rows="4"></textarea></div>
-                    <button class="btn-submit urgent">Post Announcement</button>
-                </div>
-            </div>
-
+            <div id="announce-general" class="section-view"><h3>Create General Announcement</h3><div class="form-card"><div class="form-group"><textarea class="form-control" rows="4"></textarea></div><button class="btn-submit">Post</button></div></div>
+            <div id="announce-urgent" class="section-view"><h3 style="color: #dc3545;">Create Urgent Announcement</h3><div class="form-card" style="border-top: 5px solid #dc3545;"><div class="form-group"><textarea class="form-control" rows="4"></textarea></div><button class="btn-submit urgent">Post</button></div></div>
         </div>
     </main>
 </div>
@@ -302,100 +248,115 @@
         <div class="modal-header"><h3 id="modalEventHeader">Manage Event</h3><span class="close-btn" onclick="closeModal('modal-add-event')">&times;</span></div>
         <div class="form-group"><label>Date</label><input type="text" id="eventDate" class="form-control" readonly></div>
         <div class="form-group"><label>Event Name</label><input type="text" id="eventTitle" class="form-control"></div>
+        <div class="form-group"><label>Label Color</label>
+            <select id="eventType" class="form-control">
+                <option value="badge-default">General (Yellow)</option>
+                <option value="badge-meeting">Meeting (Blue)</option>
+                <option value="badge-urgent">Urgent (Red)</option>
+                <option value="badge-holiday">Holiday (Green)</option>
+            </select>
+        </div>
+        <input type="hidden" id="sheetEventId">
         <div style="display: flex; justify-content: flex-end;">
-            <button class="btn-submit" onclick="saveEvent()">Save</button>
+            <button id="btnSaveEvent" class="btn-submit" onclick="saveEvent()">Save</button>
             <button class="btn-delete" id="btnDeleteEvent" onclick="deleteEvent()">Delete</button>
         </div>
     </div>
 </div>
 
 <script>
-    // --- 1. Navigation Logic ---
-    const SHEET_API_URL = "https://sheetdb.io/api/v1/arh117tr3hvvy";
+    // --- CONFIG ---
+    // 1. Attendance API
+    const ATTENDANCE_API = "https://sheetdb.io/api/v1/arh117tr3hvvy";
+    
+    // 2. Events API (Clean URL)
+    let EVENTS_API = "https://sheetdb.io/api/v1/ixqhkw8b3j8e6"; 
+    if(EVENTS_API.endsWith('/')) EVENTS_API = EVENTS_API.slice(0, -1);
 
+    // --- 1. Navigation ---
     function showSection(sectionId) {
         document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
         document.getElementById(sectionId).classList.add('active');
         document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active-link'));
-        if(sectionId === 'attendance-sheet') { loadSheetData(); }
+        if(sectionId === 'attendance-sheet') loadSheetData();
+        if(sectionId === 'agenda') fetchSheetEvents();
     }
 
     // --- 2. Live Date ---
     document.getElementById('currentDate').innerText = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 
-    // --- 3. Attendance Toggle Logic (FIXED: BUTTON REMAINS YELLOW) ---
+    // --- 3. Attendance Toggle ---
     let isReportView = false;
     function toggleAttendanceView() {
         const daily = document.getElementById('attendance-daily');
         const reports = document.getElementById('attendance-reports');
         const btn = document.getElementById('toggleReportBtn');
         isReportView = !isReportView;
-
         if(isReportView) {
-            daily.style.display = 'none';
-            reports.style.display = 'block';
-            btn.innerText = "Back to List"; 
-            // Note: We removed the style overrides so it keeps the default yellow class style
+            daily.style.display = 'none'; reports.style.display = 'block'; btn.innerText = "Back to List";
         } else {
-            daily.style.display = 'block';
-            reports.style.display = 'none';
-            btn.innerText = "View Reports";
+            daily.style.display = 'block'; reports.style.display = 'none'; btn.innerText = "View Reports";
         }
     }
 
-    // --- 4. Fetch Sheet Data ---
+    // --- 4. SheetDB Attendance Data ---
     function loadSheetData() {
         const table = document.getElementById('sheetTable');
         const tbody = document.getElementById('sheetBody');
         const spinner = document.getElementById('sheetSpinner');
+        table.style.display = 'none'; spinner.style.display = 'block'; tbody.innerHTML = '';
 
-        table.style.display = 'none';
-        spinner.style.display = 'block';
-        tbody.innerHTML = '';
-
-        fetch(SHEET_API_URL)
-        .then(response => response.json())
-        .then(data => {
-            spinner.style.display = 'none';
-            table.style.display = 'table';
+        fetch(ATTENDANCE_API).then(res => res.json()).then(data => {
+            spinner.style.display = 'none'; table.style.display = 'table';
             data.forEach(row => {
                 if(row.Date || row.InTime) {
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${row.Date || '-'}</td><td>${row.InTime || '-'}</td><td>${row.OutTime || '-'}</td><td>${row.WorkingPeriod || '-'}</td><td><span class="event-badge">${row.Action || '-'}</span></td>`;
+                    tr.innerHTML = `<td>${row.Date||'-'}</td><td>${row.InTime||'-'}</td><td>${row.OutTime||'-'}</td><td>${row.WorkingPeriod||'-'}</td><td><span class="event-badge badge-default" style="color:black">${row.Action||'-'}</span></td>`;
                     tbody.appendChild(tr);
                 }
             });
-        })
-        .catch(error => {
-            spinner.style.display = 'none';
-            tbody.innerHTML = '<tr><td colspan="5" style="color:red; text-align:center;">Failed to load data.</td></tr>';
-            table.style.display = 'table';
+        }).catch(e => { 
+            console.error(e);
+            spinner.style.display = 'none'; 
+            tbody.innerHTML = '<tr><td colspan="5" style="color:red;text-align:center">Error loading data.</td></tr>'; 
+            table.style.display = 'table'; 
         });
     }
 
-    // --- 5. Download CSV Logic ---
     function downloadCSV() {
         const rows = document.querySelectorAll("#sheetTable tr");
-        if(rows.length <= 1) { alert("No data to download!"); return; }
-        let csvContent = "data:text/csv;charset=utf-8,";
-        rows.forEach(row => {
-            const cols = row.querySelectorAll("td, th");
-            let rowData = [];
-            cols.forEach(col => rowData.push(col.innerText));
-            csvContent += rowData.join(",") + "\r\n";
-        });
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "attendance_report.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        if(rows.length<=1){alert("No data!");return;}
+        let csv = "data:text/csv;charset=utf-8,";
+        rows.forEach(r => { let row = []; r.querySelectorAll("td,th").forEach(c => row.push(c.innerText)); csv += row.join(",") + "\r\n"; });
+        const link = document.createElement("a"); link.href = encodeURI(csv); link.download = "attendance.csv"; document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
 
-    // --- 6. Calendar & Modal Logic ---
-    let nav = 0; let clickedDate = null; let events = [];
+    // --- 5. CALENDAR LOGIC ---
+    let nav = 0; 
+    let clickedDate = null; 
+    let events = [];
     const calendarGrid = document.getElementById('calendarGrid');
+
+    function fetchSheetEvents() {
+        document.getElementById('calLoading').style.display = 'block';
+        fetch(EVENTS_API)
+        .then(res => res.json())
+        .then(data => {
+            // MAP KEYS (Capitalized in Sheet -> lowercase in JS)
+            events = data.map(ev => ({
+                id: ev.Id,
+                date: ev.Date,
+                title: ev.Title,
+                type: ev.Type
+            }));
+            document.getElementById('calLoading').style.display = 'none';
+            loadCalendar(); 
+        })
+        .catch(err => {
+            console.error("Fetch Error:", err);
+            document.getElementById('calLoading').innerText = "Failed to load events.";
+        });
+    }
     
     function loadCalendar() {
         const dt = new Date();
@@ -408,34 +369,142 @@
 
         document.getElementById('monthYearDisplay').innerText = dt.toLocaleDateString('en-us', { month: 'long', year: 'numeric' });
         calendarGrid.innerHTML = '';
+        
         ['S','M','T','W','T','F','S'].forEach(d => {
             const div = document.createElement('div'); div.classList.add('day-name'); div.innerText = d; calendarGrid.appendChild(div);
         });
+
         for(let i=0; i<padding; i++) { const div = document.createElement('div'); div.classList.add('calendar-day','padding'); calendarGrid.appendChild(div); }
+        
         for(let i=1; i<=daysInMonth; i++) {
             const div = document.createElement('div'); div.classList.add('calendar-day');
             div.innerHTML = `<div class="day-number">${i}</div>`;
-            const dateStr = `${month+1}/${i}/${year}`;
-            const ev = events.find(e => e.date === dateStr);
-            if(ev) div.innerHTML += `<div class="event-badge">${ev.title}</div>`;
-            div.onclick = () => openEventModal(dateStr);
+            const dateStr = `${month+1}/${i}/${year}`; // M/D/YYYY
+            
+            const dayEvents = events.filter(e => e.date === dateStr);
+            dayEvents.forEach(ev => {
+                const badge = document.createElement('div');
+                badge.className = `event-badge ${ev.type || 'badge-default'}`;
+                badge.innerText = ev.title;
+                // Click badge to edit
+                badge.onclick = (e) => { 
+                    e.stopPropagation(); 
+                    openEventModal(dateStr, ev); 
+                };
+                div.appendChild(badge);
+            });
+
+            // Click empty cell to add
+            div.onclick = () => openEventModal(dateStr, null);
             calendarGrid.appendChild(div);
         }
     }
     
     function changeMonth(d) { nav += d; loadCalendar(); }
+    
+    function openEventModal(dateStr, existingEvent) {
+        clickedDate = dateStr;
+        document.getElementById('eventDate').value = dateStr;
+        const btnSave = document.getElementById('btnSaveEvent');
+        const btnDelete = document.getElementById('btnDeleteEvent');
+
+        if (existingEvent) {
+            document.getElementById('modalEventHeader').innerText = "Edit Event";
+            document.getElementById('eventTitle').value = existingEvent.title;
+            document.getElementById('sheetEventId').value = existingEvent.id; 
+            document.getElementById('eventType').value = existingEvent.type || 'badge-default';
+            btnDelete.style.display = 'block';
+            btnSave.innerText = "Update";
+        } else {
+            document.getElementById('modalEventHeader').innerText = "Add Event";
+            document.getElementById('eventTitle').value = '';
+            document.getElementById('sheetEventId').value = '';
+            document.getElementById('eventType').value = 'badge-default';
+            btnDelete.style.display = 'none';
+            btnSave.innerText = "Save";
+        }
+        openModal('modal-add-event');
+    }
+
+    function saveEvent() {
+        const title = document.getElementById('eventTitle').value;
+        const type = document.getElementById('eventType').value;
+        const id = document.getElementById('sheetEventId').value;
+        const btn = document.getElementById('btnSaveEvent');
+        
+        if (!title) return alert("Title required");
+
+        btn.innerText = "Saving...";
+        btn.disabled = true;
+
+        if (id) {
+            // UPDATE: /Id/{id} (Capitalized)
+            fetch(`${EVENTS_API}/Id/${encodeURIComponent(id)}`, {
+                method: "PATCH",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: { Title: title, Type: type } })
+            })
+            .then(async res => {
+                if(res.ok) {
+                    closeModal('modal-add-event');
+                    fetchSheetEvents();
+                } else {
+                    alert("Error saving: " + await res.text());
+                }
+                btn.disabled = false;
+                btn.innerText = "Save";
+            });
+        } else {
+            // CREATE
+            const newId = Date.now().toString(); 
+            const newEvent = { Id: newId, Date: clickedDate, Title: title, Type: type };
+            
+            fetch(EVENTS_API, {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: newEvent })
+            })
+            .then(async res => {
+                if(res.ok) {
+                    closeModal('modal-add-event');
+                    fetchSheetEvents();
+                } else {
+                    alert("Error saving: " + await res.text());
+                }
+                btn.disabled = false;
+                btn.innerText = "Save";
+            });
+        }
+    }
+
+    function deleteEvent() {
+        const id = document.getElementById('sheetEventId').value;
+        if(!id) { alert("Error: Event ID missing."); return; }
+        if(!confirm("Delete this event?")) return;
+
+        const btn = document.getElementById('btnDeleteEvent');
+        btn.innerText = "Deleting...";
+        btn.disabled = true;
+        
+        // DELETE: /Id/{id} (Capitalized)
+        fetch(`${EVENTS_API}/Id/${encodeURIComponent(id)}`, { method: "DELETE" })
+        .then(async res => {
+            if(res.ok) {
+                closeModal('modal-add-event');
+                fetchSheetEvents();
+            } else {
+                alert("Error deleting: " + await res.text());
+            }
+            btn.innerText = "Delete";
+            btn.disabled = false;
+        });
+    }
+
+    // --- 7. Utility ---
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    function openEventModal(d) { clickedDate = d; document.getElementById('eventDate').value = d; openModal('modal-add-event'); }
-    function saveEvent() { events.push({date: clickedDate, title: document.getElementById('eventTitle').value}); closeModal('modal-add-event'); loadCalendar(); }
-    function deleteEvent() { closeModal('modal-add-event'); }
-    
     function approveRequest(id) { document.getElementById(id).style.display = 'none'; alert("Request Approved"); }
     function openDenyModal(id) { window.currentReqId = id; document.getElementById('denyReason').value = ''; openModal('modal-deny-req'); }
     function submitDeny() { alert("Request Denied."); document.getElementById(window.currentReqId).style.display = 'none'; closeModal('modal-deny-req'); }
 
-    loadCalendar();
 </script>
-
-</body>
-</html>
