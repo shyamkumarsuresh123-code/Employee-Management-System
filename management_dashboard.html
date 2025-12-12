@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Management Dashboard - AI Infotech</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
         /* --- General Reset --- */
@@ -199,7 +200,7 @@
             <div id="employee-details" class="section-view">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3>Employee Directory (All Staff)</h3>
-                    <button class="btn-view-more" onclick="downloadEmployeeCSV()"><i class="fa-solid fa-file-csv"></i> Download Employee Details</button>
+                    <button class="btn-view-more" onclick="downloadEmployeeExcel()"><i class="fa-solid fa-file-excel"></i> Download Excel</button>
                 </div>
                 <p style="color: #666; margin-bottom: 20px;">Fetching data from User Registration Database...</p>
                 <div class="report-table-container">
@@ -257,7 +258,7 @@
             <div id="attendance-sheet" class="section-view">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3>Employee Attendance Sheet (Live)</h3>
-                    <button class="btn-view-more" onclick="downloadCSV()"><i class="fa-solid fa-file-excel"></i> Download CSV</button>
+                    <button class="btn-view-more" onclick="downloadAttendanceExcel()"><i class="fa-solid fa-file-excel"></i> Download Excel</button>
                 </div>
                 <p style="color: #666; margin-bottom: 20px;">Fetching data from SheetDB...</p>
                 <div class="report-table-container">
@@ -313,15 +314,9 @@
 <script>
     // --- CONFIG ---
     const ATTENDANCE_API = "https://sheetdb.io/api/v1/arh117tr3hvvy";
-    
-    // ✅ URL 1: EVENTS (Calendar)
     let EVENTS_API = "https://sheetdb.io/api/v1/ixqhkw8b3j8e6"; 
     if(EVENTS_API.endsWith('/')) EVENTS_API = EVENTS_API.slice(0, -1);
-
-    // ✅ URL 2: REQUESTS (Approvals)
     const REQUESTS_API = "https://sheetdb.io/api/v1/we2frfscvur6g";
-
-    // ✅ URL 3: USER DB (Employee Details)
     const USER_DB_API = "https://sheetdb.io/api/v1/b53909p8ngawe";
 
     // --- 1. Navigation ---
@@ -333,10 +328,19 @@
         if(sectionId === 'attendance-sheet') loadSheetData();
         if(sectionId === 'agenda') fetchSheetEvents();
         if(sectionId === 'emp-requests') fetchRequests();
-        if(sectionId === 'employee-details') fetchEmployeeDetails(); // New Function
+        if(sectionId === 'employee-details') fetchEmployeeDetails(); 
     }
 
     document.getElementById('currentDate').innerText = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    // --- 2. DATE FIX FUNCTION ---
+    function formatSheetDate(dateVal) {
+        if (!isNaN(dateVal) && dateVal > 20000) {
+            const date = new Date(Math.round((dateVal - 25569) * 86400 * 1000));
+            return date.toLocaleDateString('en-GB'); 
+        }
+        return dateVal; 
+    }
 
     // --- 3. Attendance Toggle ---
     let isReportView = false;
@@ -362,9 +366,7 @@
         fetch(ATTENDANCE_API).then(res => res.json()).then(data => {
             spinner.style.display = 'none'; table.style.display = 'table';
             data.forEach(row => {
-                // Check if 'Employee Name' exists, if not, it might be an old record or different structure
                 const empName = row["Employee Name"] ? row["Employee Name"] : "Unknown";
-                
                 if(row.Date || row.InTime) {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `<td>${empName}</td><td>${row.Date||'-'}</td><td>${row.InTime||'-'}</td><td>${row.OutTime||'-'}</td><td>${row.WorkingPeriod||'-'}</td><td><span class="event-badge badge-default" style="color:black">${row.Action||'-'}</span></td>`;
@@ -374,15 +376,37 @@
         }).catch(e => { spinner.style.display = 'none'; tbody.innerHTML = '<tr><td colspan="6" style="color:red;text-align:center">Error loading data.</td></tr>'; table.style.display = 'table'; });
     }
 
-    function downloadCSV() {
-        const rows = document.querySelectorAll("#sheetTable tr");
-        if(rows.length<=1){alert("No data!");return;}
-        let csv = "data:text/csv;charset=utf-8,";
-        rows.forEach(r => { let row = []; r.querySelectorAll("td,th").forEach(c => row.push(c.innerText)); csv += row.join(",") + "\r\n"; });
-        const link = document.createElement("a"); link.href = encodeURI(csv); link.download = "attendance.csv"; document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    // --- 5. EXCEL DOWNLOAD FUNCTIONS (USING SHEETJS) ---
+    
+    // Generic function to export a Table ID to Excel
+    function exportTableToExcel(tableId, filename) {
+        var table = document.getElementById(tableId);
+        // Check if table has data (rows > 1 because row 0 is header)
+        if (!table || table.rows.length <= 1) { 
+            alert("No data available to download!"); 
+            return; 
+        }
+        
+        // Convert table to worksheet
+        var wb = XLSX.utils.book_new();
+        var ws = XLSX.utils.table_to_sheet(table);
+        
+        // Add worksheet to workbook
+        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+        
+        // Save file
+        XLSX.writeFile(wb, filename);
     }
 
-    // --- NEW FUNCTION: FETCH EMPLOYEE DETAILS ---
+    function downloadAttendanceExcel() {
+        exportTableToExcel('sheetTable', 'attendance_report.xlsx');
+    }
+
+    function downloadEmployeeExcel() {
+        exportTableToExcel('empTable', 'employee_directory.xlsx');
+    }
+
+    // --- 6. FETCH EMPLOYEE DETAILS ---
     function fetchEmployeeDetails() {
         const table = document.getElementById('empTable');
         const tbody = document.getElementById('empBody');
@@ -400,19 +424,19 @@
                 
                 data.forEach(user => {
                     const tr = document.createElement('tr');
-                    // Ensure keys match your Google Sheet Headers
-                    // "User Name", "First Name", "Last Name", "Email", "Phone Number", "Date Of Birth"
                     const fullName = `${user['First Name'] || ''} ${user['Last Name'] || ''}`;
-                    const dob = user['Date Of Birth'] || '-';
-                    const role = user['role'] || 'Employee'; // Default if column missing
-                    const status = user['status'] || 'Active'; // Default if column missing
+                    const rawDob = user['Date Of Birth'];
+                    const formattedDob = formatSheetDate(rawDob); 
+
+                    const role = user['role'] || 'Employee'; 
+                    const status = user['status'] || 'Active'; 
 
                     tr.innerHTML = `
                         <td>${user['User Name'] || '-'}</td>
                         <td>${fullName}</td>
                         <td>${user['Email'] || '-'}</td>
                         <td>${user['Phone Number'] || '-'}</td>
-                        <td>${dob}</td>
+                        <td>${formattedDob}</td>
                         <td>${role}</td>
                         <td><span class="badge bg-Approved">${status}</span></td>
                     `;
@@ -427,25 +451,7 @@
             });
     }
 
-    // --- NEW FUNCTION: DOWNLOAD EMPLOYEE CSV ---
-    function downloadEmployeeCSV() {
-        const rows = document.querySelectorAll("#empTable tr");
-        if(rows.length<=1){alert("No data available to download!");return;}
-        let csv = "data:text/csv;charset=utf-8,";
-        rows.forEach(r => { 
-            let row = []; 
-            r.querySelectorAll("td,th").forEach(c => row.push(c.innerText)); 
-            csv += row.join(",") + "\r\n"; 
-        });
-        const link = document.createElement("a"); 
-        link.href = encodeURI(csv); 
-        link.download = "employee_directory.csv"; 
-        document.body.appendChild(link); 
-        link.click(); 
-        document.body.removeChild(link);
-    }
-
-    // --- 5. CALENDAR LOGIC ---
+    // --- 7. CALENDAR LOGIC ---
     let nav = 0; let clickedDate = null; let events = [];
     const calendarGrid = document.getElementById('calendarGrid');
 
@@ -534,7 +540,7 @@
         .then(res => { closeModal('modal-add-event'); fetchSheetEvents(); document.getElementById('btnDeleteEvent').innerText = "Delete"; });
     }
 
-    // --- 6. EMPLOYEE REQUESTS LOGIC (MANAGEMENT) ---
+    // --- 8. EMPLOYEE REQUESTS LOGIC (MANAGEMENT) ---
     function fetchRequests() {
         const container = document.getElementById('requestsContainer');
         const spinner = document.getElementById('reqSpinner');
@@ -580,7 +586,7 @@
     function openDenyModal(id) { currentDenyId = id; document.getElementById('denyReason').value = ''; document.getElementById('modal-deny-req').style.display = 'flex'; }
     function submitDeny() { const reason = document.getElementById('denyReason').value; if(!reason) return alert("Provide a reason."); processRequest(currentDenyId, 'Denied', reason); }
 
-    // --- 7. Utility ---
+    // --- 9. Utility ---
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
     
