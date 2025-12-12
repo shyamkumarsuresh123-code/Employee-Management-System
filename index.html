@@ -23,26 +23,23 @@
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* --- LOGO STYLE (Common Blue) --- */
+        /* --- LOGO STYLE --- */
         .logo {
             width: 280px; 
             height: auto;
             margin-bottom: 25px;
             display: block;
-            
-            /* COMMON BLUE BACKGROUND */
             background-color: #0056b3; 
-            
             padding: 15px 30px;
             border-radius: 50px; 
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
-        /* --- TITLE STYLES (Black & Caps) --- */
+        /* --- TITLE STYLES --- */
         h1 { 
             margin-bottom: 10px; 
-            color: #000000; /* Black */
-            text-transform: uppercase; /* Full Caps */
+            color: #000000; 
+            text-transform: uppercase; 
             letter-spacing: 1px;
             font-size: 1.8rem;
         }
@@ -58,23 +55,19 @@
         /* BUTTONS */
         button { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; color: white; transition: 0.3s; margin-top: 10px;}
 
-        /* Management Button - Green */
         .btn-mgmt { background-color: #27ae60; }
         .btn-mgmt:hover { background-color: #219150; }
 
-        /* Employee Button - Green */
         .btn-emp { background-color: #27ae60; }
         .btn-emp:hover { background-color: #219150; }
 
-        /* SWITCH BUTTONS (Unified Blue) */
+        /* SWITCH BUTTONS */
         .switch-btn {
             background: transparent;
             border: 2px solid;
             margin-top: 20px;
             padding: 10px 20px;
             font-size: 14px;
-            
-            /* Common Blue */
             color: #0056b3; 
             border-color: #0056b3; 
         }
@@ -83,7 +76,7 @@
             color: white; 
         }
 
-        /* LINKS (Common Blue) */
+        /* LINKS */
         a { color: #0056b3; text-decoration: none; font-weight: bold; }
         a:hover { text-decoration: underline; }
 
@@ -94,14 +87,25 @@
         .close:hover { color: #000; }
         .scroll-form { max-height: 400px; overflow-y: auto; padding-right: 10px; }
         .scroll-form input { width: 90%; margin-bottom: 5px;}
+        
+        /* Loading Spinner */
+        #loading { display: none; text-align: center; margin-top: 10px; font-weight: bold; color: #0056b3; }
+        
+        /* DOB Label inside Modal */
+        .dob-label {
+            display: block;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: -10px;
+            margin-left: 2px;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
 
 <div id="management-section" class="full-screen-section" style="display: flex;">
-    
     <img src="aiinfo.webp" alt="AI Infotech Logo" class="logo">
-    
     <h1>Management Portal</h1>
 
     <form onsubmit="handleLogin(event, 'management')">
@@ -121,9 +125,7 @@
 </div>
 
 <div id="employee-section" class="full-screen-section">
-    
     <img src="aiinfo.webp" alt="AI Infotech Logo" class="logo">
-
     <h1>Employee Portal</h1>
 
     <form onsubmit="handleLogin(event, 'employee')">
@@ -135,6 +137,7 @@
         <input type="password" id="emp-pass" name="password" placeholder="Password" required>
         
         <button type="submit" class="btn-emp">Login</button>
+        <div id="loading">Checking Database...</div>
     </form>
 
     <p style="margin-top: 20px;">
@@ -150,73 +153,181 @@
     <div class="modal-content">
         <span class="close" onclick="closeModal()">&times;</span>
         <h2 style="text-align: center; margin-top: 0;">New Registration</h2>
-        <form onsubmit="alert('Registration Submitted!'); closeModal();" class="scroll-form">
-            <input type="text" name="username" placeholder="User Name" required>
-            <input type="text" name="firstName" placeholder="First Name" required>
-            <input type="text" name="lastName" placeholder="Last Name" required>
-            <input type="email" name="email" placeholder="Mail ID" required>
-            <input type="tel" name="phone" placeholder="Phone Number" required>
-            <input type="tel" name="emergencyContact" placeholder="Emergency Contact Number" required>
-            <label style="font-size: 14px; margin-bottom: -10px;">Date of Birth:</label>
-            <input type="date" name="dob" required>
-            <input type="password" name="password" placeholder="Password" required>
+        <form id="registrationForm" class="scroll-form">
+            <input type="text" name="User Name" placeholder="User Name (Login ID)" required>
+            <input type="text" name="First Name" placeholder="First Name" required>
+            <input type="text" name="Last Name" placeholder="Last Name" required>
+            <input type="email" name="Email" placeholder="Email" required>
+            
+            <label class="dob-label">Date Of Birth:</label>
+            <input type="text" name="Date Of Birth" placeholder="Date of Birth (DD/MM/YYYY)" required>
+            
+            <input type="tel" name="Phone Number" placeholder="Phone Number" required>
+            <input type="tel" name="Emergency Contact Number" placeholder="Emergency Contact Number" required>
+            
+            <input type="password" name="Password" placeholder="Password" required>
+            
             <input type="password" name="confirmPassword" placeholder="Confirm Password" required>
 
             <button type="submit" class="btn-emp" style="margin-top: 10px;">Submit Registration</button>
+            <div id="reg-loading" style="display:none; text-align:center; margin-top:5px;">Saving to Database...</div>
         </form>
     </div>
 </div>
 
 <script>
-    // PAGE SWITCHING LOGIC
-    function showEmployee() {
+    // ==========================================
+    // CONFIGURATION
+    // ==========================================
+    const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/b53909p8ngawe'; 
+    // ==========================================
+
+    // 1. PAGE NAVIGATION FUNCTIONS
+    window.showEmployee = function() {
         document.getElementById('management-section').style.display = 'none';
         document.getElementById('employee-section').style.display = 'flex';
     }
 
-    function showManagement() {
+    window.showManagement = function() {
         document.getElementById('employee-section').style.display = 'none';
         document.getElementById('management-section').style.display = 'flex';
     }
 
-    // --- SECURE LOGIN HANDLER ---
-    function handleLogin(event, role) {
-        event.preventDefault(); // Stop page reload
-        
-        if(role === 'management') {
-            // Get inputs
-            const id = document.getElementById('mgmt-id').value;
-            const pass = document.getElementById('mgmt-pass').value;
-
-            // Check Credentials
-            if(id === "admin" && pass === "admin123") {
-                window.location.href = "management_dashboard.html";
-            } else {
-                alert("Invalid ID or Password");
-            }
-
-        } else if(role === 'employee') {
-            // Get inputs
-            const id = document.getElementById('emp-id').value;
-            const pass = document.getElementById('emp-pass').value;
-
-            // Check Credentials
-            if(id === "employee" && pass === "employee123") {
-                window.location.href = "employee_dashboard.html";
-            } else {
-                alert("Invalid ID or Password");
-            }
+    // Modal Handling
+    window.openModal = function() { document.getElementById("regModal").style.display = "block"; }
+    window.closeModal = function() { document.getElementById("regModal").style.display = "none"; }
+    
+    window.onclick = function(event) {
+        if (event.target == document.getElementById("regModal")) { 
+            window.closeModal(); 
         }
     }
 
-    // MODAL LOGIC
-    function openModal() { document.getElementById("regModal").style.display = "block"; }
-    function closeModal() { document.getElementById("regModal").style.display = "none"; }
+    // 2. LOGIN HANDLING
+    window.handleLogin = function(event, role) {
+        event.preventDefault();
+        
+        if(role === 'management') {
+            const id = document.getElementById('mgmt-id').value;
+            const pass = document.getElementById('mgmt-pass').value;
 
-    // Close modal if clicking background
-    window.onclick = function(event) {
-        if (event.target == document.getElementById("regModal")) { closeModal(); }
+            // Simple Admin Check
+            if(id === "admin" && pass === "admin123") {
+                sessionStorage.setItem("userRole", "admin");
+                sessionStorage.setItem("userName", "Administrator");
+                window.location.href = "management_dashboard.html";
+            } else {
+                alert("Invalid Management Credentials");
+            }
+
+        } else if(role === 'employee') {
+            const id = document.getElementById('emp-id').value;
+            const pass = document.getElementById('emp-pass').value;
+            const loading = document.getElementById('loading');
+
+            loading.style.display = 'block';
+
+            // 1. Always Search Database FIRST
+            fetch(`${SHEETDB_API_URL}/search?User Name=${encodeURIComponent(id)}`)
+                .then(response => response.json())
+                .then(data => {
+                    loading.style.display = 'none';
+                    
+                    // Case A: User Found in Database
+                    if (data.length > 0) {
+                        const user = data[0]; 
+                        
+                        // We strictly use the database password here
+                        if (user["Password"] === pass) {
+                            sessionStorage.setItem("userRole", "employee");
+                            sessionStorage.setItem("userName", user["User Name"]);
+                            sessionStorage.setItem("fullName", `${user["First Name"]} ${user["Last Name"]}`);
+                            window.location.href = "employee_dashboard.html";
+                        } else {
+                            alert("Incorrect Password (Database Record Found)");
+                        }
+                    } 
+                    // Case B: User NOT Found in Database -> Check Default Hardcoded
+                    else {
+                        if(id === "employee" && pass === "employee123") {
+                            sessionStorage.setItem("userRole", "employee");
+                            sessionStorage.setItem("userName", "employee"); // Default ID
+                            sessionStorage.setItem("fullName", "Demo Employee"); // Default Name
+                            window.location.href = "employee_dashboard.html";
+                        } else {
+                            alert("User ID not found in Database");
+                        }
+                    }
+                })
+                .catch(error => {
+                    loading.style.display = 'none';
+                    console.error('Error:', error);
+                    
+                    // Fallback: If internet fails, allow default login if credentials match
+                    if(id === "employee" && pass === "employee123") {
+                        alert("Network Error. Logging in with Offline Default Credentials.");
+                        sessionStorage.setItem("userRole", "employee");
+                        sessionStorage.setItem("userName", "employee");
+                        window.location.href = "employee_dashboard.html";
+                    } else {
+                        alert("Connection error. Please try again.");
+                    }
+                });
+        }
     }
+
+    // 3. REGISTRATION LOGIC
+    const regForm = document.getElementById('registrationForm');
+    
+    regForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(regForm);
+        const userData = Object.fromEntries(formData.entries());
+        const loading = document.getElementById('reg-loading');
+
+        // Check Passwords
+        if(userData["Password"] !== userData["confirmPassword"]){
+            alert("Passwords do not match!");
+            return;
+        }
+
+        // Delete confirmPassword so it is NOT sent to the Google Sheet
+        delete userData["confirmPassword"];
+        
+        loading.style.display = 'block';
+
+        // POST request to SheetDB
+        fetch(SHEETDB_API_URL, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                data: [ userData ]
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            loading.style.display = 'none';
+            if (data.created === 1) {
+                alert("Registration Successful! You can now login.");
+                regForm.reset();
+                window.closeModal();
+            } else if (data.error) {
+                alert("Database Error: " + data.error);
+            } else {
+                alert("Registration Failed. Please verify that your Google Sheet Headers match the form fields exactly.");
+            }
+        })
+        .catch(error => {
+            loading.style.display = 'none';
+            console.error("Error registering:", error);
+            alert("Network Error: " + error.message);
+        });
+    });
+
 </script>
 
 </body>
