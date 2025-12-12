@@ -72,10 +72,15 @@
         .report-card p { font-size: 1.5rem; font-weight: bold; color: #333; margin: 10px 0; }
 
         /* Requests */
-        .req-card { background: white; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #ffc107; }
-        .action-btn { padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; color: white; margin-left: 5px; }
+        .req-card { background: white; padding: 20px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #ffc107; }
+        .req-info h5 { margin: 0 0 5px 0; font-size: 1.1rem; color: #333; }
+        .req-info p { margin: 0; color: #666; font-size: 0.95rem; }
+        .req-reason { font-size: 0.85rem; color: #888; margin-top: 5px; font-style: italic; }
+        .action-btn { padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; color: white; margin-left: 5px; font-weight: bold;}
         .btn-approve { background-color: #28a745; }
         .btn-deny { background-color: #dc3545; }
+        .btn-approve:hover { background-color: #218838; }
+        .btn-deny:hover { background-color: #c82333; }
 
         /* Modal */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
@@ -98,7 +103,7 @@
         .calendar-day:hover { background-color: #fff9db; border-color: #ffc107; }
         .calendar-day.current-day { background-color: #fff3cd; border: 1px solid #ffc107; }
         
-        /* Event Badges */
+        /* Event Badges - Clickable */
         .event-badge { font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; margin-bottom: 3px; width: 90%; text-align: left; font-weight: bold; color: white; cursor: pointer; transition: 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 1px 2px rgba(0,0,0,0.1); z-index: 10; }
         .event-badge:hover { opacity: 0.9; transform: scale(1.02); }
         .badge-meeting { background-color: #007bff; }
@@ -116,6 +121,7 @@
         
         /* Utility */
         .spinner { font-size: 2rem; color: #ffc107; text-align: center; display: block; margin: 20px auto; }
+        #noRequestsMsg { text-align: center; color: #888; font-style: italic; display: none; }
     </style>
 </head>
 <body>
@@ -127,6 +133,9 @@
         <ul class="nav-links">
             <li><a onclick="showSection('dashboard')" class="active-link"><i class="fa-solid fa-gauge"></i> Dashboard</a></li>
             <li><a onclick="showSection('agenda')"><i class="fa-solid fa-calendar-days"></i> Agenda</a></li>
+            
+            <li><a onclick="showSection('employee-details')"><i class="fa-solid fa-users-gear"></i> Employee Details</a></li>
+
             <li><a onclick="showSection('emp-requests')"><i class="fa-solid fa-envelope-open-text"></i> Employees Request</a></li>
             
             <li>
@@ -134,7 +143,7 @@
                     <summary><i class="fa-solid fa-clipboard-user"></i> Attendance</summary>
                     <ul class="sub-menu">
                         <li><a onclick="showSection('attendance-overview')">Overview</a></li>
-                        <li><a onclick="showSection('attendance-sheet')">Employee Sheet DB</a></li>
+                        <li><a onclick="showSection('attendance-sheet')">Employee Attendance DB</a></li>
                     </ul>
                 </details>
             </li>
@@ -170,12 +179,10 @@
 
             <div id="agenda" class="section-view">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h3>Team Agenda (Live SheetDB)</h3>
+                    <h3>Team Agenda</h3>
                     <button class="btn-view-more" onclick="fetchSheetEvents()">Refresh Calendar</button>
                 </div>
-                <p style="color:#666; font-size:0.9rem; margin-top:5px;">
-                    <i class="fa-solid fa-circle-info"></i> Click <b>Date</b> to Add. Click <b>Event Label</b> to Edit/Delete.
-                </p>
+                <p style="color:#666;">Click any date to add a new event. Click a label to edit/remove.</p>
                 <div class="agenda-card">
                     <div class="calendar-header">
                         <h2 id="monthYearDisplay">Month Year</h2>
@@ -189,12 +196,41 @@
                 </div>
             </div>
 
-            <div id="emp-requests" class="section-view">
-                <h3>Employee Requests</h3><br>
-                <div class="req-card" id="req-1">
-                    <div class="req-info"><h5>Michael Brown</h5><p>Subject: Leave Application (Sick) - 2 Days</p></div>
-                    <div><button class="action-btn btn-approve" onclick="approveRequest('req-1')">Approve</button><button class="action-btn btn-deny" onclick="openDenyModal('req-1')">Deny</button></div>
+            <div id="employee-details" class="section-view">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3>Employee Directory (All Staff)</h3>
+                    <button class="btn-view-more" onclick="downloadEmployeeCSV()"><i class="fa-solid fa-file-csv"></i> Download Employee Details</button>
                 </div>
+                <p style="color: #666; margin-bottom: 20px;">Fetching data from User Registration Database...</p>
+                <div class="report-table-container">
+                    <i id="empSpinner" class="fa-solid fa-spinner fa-spin spinner"></i>
+                    <table class="styled-table" id="empTable" style="display: none;">
+                        <thead>
+                            <tr>
+                                <th>User Name (ID)</th>
+                                <th>Full Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Date Of Birth</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="empBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="emp-requests" class="section-view">
+                <div style="display:flex; justify-content:space-between; align-items:center">
+                    <h3>Pending Employee Requests</h3>
+                    <button class="btn-view-more" onclick="fetchRequests()">Refresh</button>
+                </div>
+                <br>
+                <div id="requestsContainer">
+                    <i id="reqSpinner" class="fa-solid fa-spinner fa-spin spinner"></i>
+                    </div>
+                <p id="noRequestsMsg">No pending requests.</p>
             </div>
 
             <div id="attendance-overview" class="section-view">
@@ -227,7 +263,7 @@
                 <div class="report-table-container">
                     <i id="sheetSpinner" class="fa-solid fa-spinner fa-spin spinner"></i>
                     <table class="styled-table" id="sheetTable" style="display: none;">
-                        <thead><tr><th>Date</th><th>In Time</th><th>Out Time</th><th>Working Period</th><th>Action</th></tr></thead>
+                        <thead><tr><th>Name</th><th>Date</th><th>In Time</th><th>Out Time</th><th>Working Period</th><th>Action</th></tr></thead>
                         <tbody id="sheetBody"></tbody>
                     </table>
                 </div>
@@ -241,7 +277,6 @@
 
 <div id="modal-employees" class="modal-overlay"><div class="modal-content"><span class="close-btn" onclick="closeModal('modal-employees')">&times;</span><h3>Employee Directory</h3><ul class="data-list"><li><span class="avatar">JD</span> John Doe</li></ul></div></div>
 <div id="modal-absentees" class="modal-overlay"><div class="modal-content"><span class="close-btn" onclick="closeModal('modal-absentees')">&times;</span><h3 style="color:#dc3545">Absent Today</h3><ul class="data-list"><li><span class="avatar" style="background:#f8d7da; color:#721c24;">MW</span> Mark Williams</li></ul></div></div>
-<div id="modal-deny-req" class="modal-overlay"><div class="modal-content"><span class="close-btn" onclick="closeModal('modal-deny-req')">&times;</span><h3 style="color:#dc3545">Deny Request</h3><textarea id="denyReason" class="form-control" rows="4"></textarea><br><button class="btn-submit urgent" onclick="submitDeny()">Confirm</button></div></div>
 
 <div id="modal-add-event" class="modal-overlay">
     <div class="modal-content">
@@ -264,25 +299,43 @@
     </div>
 </div>
 
+<div id="modal-deny-req" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header"><h3 style="color:#dc3545">Deny Request</h3><span class="close-btn" onclick="closeModal('modal-deny-req')">&times;</span></div>
+        <div class="form-group">
+            <label>Reason for Denial:</label>
+            <textarea id="denyReason" class="form-control" rows="4" placeholder="e.g. Insufficient leave balance"></textarea>
+        </div>
+        <button class="btn-submit" style="background-color:#dc3545; color:white; width:100%;" onclick="submitDeny()">Confirm Denial</button>
+    </div>
+</div>
+
 <script>
     // --- CONFIG ---
-    // 1. Attendance API
     const ATTENDANCE_API = "https://sheetdb.io/api/v1/arh117tr3hvvy";
     
-    // 2. Events API (Clean URL)
+    // ✅ URL 1: EVENTS (Calendar)
     let EVENTS_API = "https://sheetdb.io/api/v1/ixqhkw8b3j8e6"; 
     if(EVENTS_API.endsWith('/')) EVENTS_API = EVENTS_API.slice(0, -1);
+
+    // ✅ URL 2: REQUESTS (Approvals)
+    const REQUESTS_API = "https://sheetdb.io/api/v1/we2frfscvur6g";
+
+    // ✅ URL 3: USER DB (Employee Details)
+    const USER_DB_API = "https://sheetdb.io/api/v1/b53909p8ngawe";
 
     // --- 1. Navigation ---
     function showSection(sectionId) {
         document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
         document.getElementById(sectionId).classList.add('active');
         document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active-link'));
+        
         if(sectionId === 'attendance-sheet') loadSheetData();
         if(sectionId === 'agenda') fetchSheetEvents();
+        if(sectionId === 'emp-requests') fetchRequests();
+        if(sectionId === 'employee-details') fetchEmployeeDetails(); // New Function
     }
 
-    // --- 2. Live Date ---
     document.getElementById('currentDate').innerText = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 
     // --- 3. Attendance Toggle ---
@@ -309,18 +362,16 @@
         fetch(ATTENDANCE_API).then(res => res.json()).then(data => {
             spinner.style.display = 'none'; table.style.display = 'table';
             data.forEach(row => {
+                // Check if 'Employee Name' exists, if not, it might be an old record or different structure
+                const empName = row["Employee Name"] ? row["Employee Name"] : "Unknown";
+                
                 if(row.Date || row.InTime) {
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${row.Date||'-'}</td><td>${row.InTime||'-'}</td><td>${row.OutTime||'-'}</td><td>${row.WorkingPeriod||'-'}</td><td><span class="event-badge badge-default" style="color:black">${row.Action||'-'}</span></td>`;
+                    tr.innerHTML = `<td>${empName}</td><td>${row.Date||'-'}</td><td>${row.InTime||'-'}</td><td>${row.OutTime||'-'}</td><td>${row.WorkingPeriod||'-'}</td><td><span class="event-badge badge-default" style="color:black">${row.Action||'-'}</span></td>`;
                     tbody.appendChild(tr);
                 }
             });
-        }).catch(e => { 
-            console.error(e);
-            spinner.style.display = 'none'; 
-            tbody.innerHTML = '<tr><td colspan="5" style="color:red;text-align:center">Error loading data.</td></tr>'; 
-            table.style.display = 'table'; 
-        });
+        }).catch(e => { spinner.style.display = 'none'; tbody.innerHTML = '<tr><td colspan="6" style="color:red;text-align:center">Error loading data.</td></tr>'; table.style.display = 'table'; });
     }
 
     function downloadCSV() {
@@ -331,70 +382,105 @@
         const link = document.createElement("a"); link.href = encodeURI(csv); link.download = "attendance.csv"; document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
 
+    // --- NEW FUNCTION: FETCH EMPLOYEE DETAILS ---
+    function fetchEmployeeDetails() {
+        const table = document.getElementById('empTable');
+        const tbody = document.getElementById('empBody');
+        const spinner = document.getElementById('empSpinner');
+        
+        table.style.display = 'none';
+        spinner.style.display = 'block';
+        tbody.innerHTML = '';
+
+        fetch(USER_DB_API)
+            .then(res => res.json())
+            .then(data => {
+                spinner.style.display = 'none';
+                table.style.display = 'table';
+                
+                data.forEach(user => {
+                    const tr = document.createElement('tr');
+                    // Ensure keys match your Google Sheet Headers
+                    // "User Name", "First Name", "Last Name", "Email", "Phone Number", "Date Of Birth"
+                    const fullName = `${user['First Name'] || ''} ${user['Last Name'] || ''}`;
+                    const dob = user['Date Of Birth'] || '-';
+                    const role = user['role'] || 'Employee'; // Default if column missing
+                    const status = user['status'] || 'Active'; // Default if column missing
+
+                    tr.innerHTML = `
+                        <td>${user['User Name'] || '-'}</td>
+                        <td>${fullName}</td>
+                        <td>${user['Email'] || '-'}</td>
+                        <td>${user['Phone Number'] || '-'}</td>
+                        <td>${dob}</td>
+                        <td>${role}</td>
+                        <td><span class="badge bg-Approved">${status}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            })
+            .catch(err => {
+                spinner.style.display = 'none';
+                tbody.innerHTML = '<tr><td colspan="7" style="color:red; text-align:center">Failed to load employee data.</td></tr>';
+                table.style.display = 'table';
+                console.error(err);
+            });
+    }
+
+    // --- NEW FUNCTION: DOWNLOAD EMPLOYEE CSV ---
+    function downloadEmployeeCSV() {
+        const rows = document.querySelectorAll("#empTable tr");
+        if(rows.length<=1){alert("No data available to download!");return;}
+        let csv = "data:text/csv;charset=utf-8,";
+        rows.forEach(r => { 
+            let row = []; 
+            r.querySelectorAll("td,th").forEach(c => row.push(c.innerText)); 
+            csv += row.join(",") + "\r\n"; 
+        });
+        const link = document.createElement("a"); 
+        link.href = encodeURI(csv); 
+        link.download = "employee_directory.csv"; 
+        document.body.appendChild(link); 
+        link.click(); 
+        document.body.removeChild(link);
+    }
+
     // --- 5. CALENDAR LOGIC ---
-    let nav = 0; 
-    let clickedDate = null; 
-    let events = [];
+    let nav = 0; let clickedDate = null; let events = [];
     const calendarGrid = document.getElementById('calendarGrid');
 
     function fetchSheetEvents() {
         document.getElementById('calLoading').style.display = 'block';
-        fetch(EVENTS_API)
-        .then(res => res.json())
-        .then(data => {
-            // MAP KEYS (Capitalized in Sheet -> lowercase in JS)
-            events = data.map(ev => ({
-                id: ev.Id,
-                date: ev.Date,
-                title: ev.Title,
-                type: ev.Type
-            }));
+        fetch(EVENTS_API).then(res => res.json()).then(data => {
+            events = data.map(ev => ({ id: ev.Id, date: ev.Date, title: ev.Title, type: ev.Type }));
             document.getElementById('calLoading').style.display = 'none';
             loadCalendar(); 
-        })
-        .catch(err => {
-            console.error("Fetch Error:", err);
-            document.getElementById('calLoading').innerText = "Failed to load events.";
-        });
+        }).catch(err => { document.getElementById('calLoading').innerText = "Failed to load events."; });
     }
     
     function loadCalendar() {
         const dt = new Date();
         if (nav !== 0) dt.setMonth(new Date().getMonth() + nav);
-        const month = dt.getMonth();
-        const year = dt.getFullYear();
-        const firstDay = new Date(year, month, 1);
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const month = dt.getMonth(); const year = dt.getFullYear();
+        const firstDay = new Date(year, month, 1); const daysInMonth = new Date(year, month + 1, 0).getDate();
         const padding = firstDay.getDay();
 
         document.getElementById('monthYearDisplay').innerText = dt.toLocaleDateString('en-us', { month: 'long', year: 'numeric' });
         calendarGrid.innerHTML = '';
-        
-        ['S','M','T','W','T','F','S'].forEach(d => {
-            const div = document.createElement('div'); div.classList.add('day-name'); div.innerText = d; calendarGrid.appendChild(div);
-        });
-
+        ['S','M','T','W','T','F','S'].forEach(d => { const div = document.createElement('div'); div.classList.add('day-name'); div.innerText = d; calendarGrid.appendChild(div); });
         for(let i=0; i<padding; i++) { const div = document.createElement('div'); div.classList.add('calendar-day','padding'); calendarGrid.appendChild(div); }
-        
         for(let i=1; i<=daysInMonth; i++) {
             const div = document.createElement('div'); div.classList.add('calendar-day');
             div.innerHTML = `<div class="day-number">${i}</div>`;
-            const dateStr = `${month+1}/${i}/${year}`; // M/D/YYYY
-            
+            const dateStr = `${month+1}/${i}/${year}`;
             const dayEvents = events.filter(e => e.date === dateStr);
             dayEvents.forEach(ev => {
                 const badge = document.createElement('div');
                 badge.className = `event-badge ${ev.type || 'badge-default'}`;
                 badge.innerText = ev.title;
-                // Click badge to edit
-                badge.onclick = (e) => { 
-                    e.stopPropagation(); 
-                    openEventModal(dateStr, ev); 
-                };
+                badge.onclick = (e) => { e.stopPropagation(); openEventModal(dateStr, ev); };
                 div.appendChild(badge);
             });
-
-            // Click empty cell to add
             div.onclick = () => openEventModal(dateStr, null);
             calendarGrid.appendChild(div);
         }
@@ -403,27 +489,22 @@
     function changeMonth(d) { nav += d; loadCalendar(); }
     
     function openEventModal(dateStr, existingEvent) {
-        clickedDate = dateStr;
-        document.getElementById('eventDate').value = dateStr;
-        const btnSave = document.getElementById('btnSaveEvent');
-        const btnDelete = document.getElementById('btnDeleteEvent');
-
+        clickedDate = dateStr; document.getElementById('eventDate').value = dateStr;
+        const btnSave = document.getElementById('btnSaveEvent'); const btnDelete = document.getElementById('btnDeleteEvent');
         if (existingEvent) {
             document.getElementById('modalEventHeader').innerText = "Edit Event";
             document.getElementById('eventTitle').value = existingEvent.title;
             document.getElementById('sheetEventId').value = existingEvent.id; 
             document.getElementById('eventType').value = existingEvent.type || 'badge-default';
-            btnDelete.style.display = 'block';
-            btnSave.innerText = "Update";
+            btnDelete.style.display = 'block'; btnSave.innerText = "Update";
         } else {
             document.getElementById('modalEventHeader').innerText = "Add Event";
             document.getElementById('eventTitle').value = '';
             document.getElementById('sheetEventId').value = '';
             document.getElementById('eventType').value = 'badge-default';
-            btnDelete.style.display = 'none';
-            btnSave.innerText = "Save";
+            btnDelete.style.display = 'none'; btnSave.innerText = "Save";
         }
-        openModal('modal-add-event');
+        document.getElementById('modal-add-event').style.display = 'flex';
     }
 
     function saveEvent() {
@@ -431,80 +512,81 @@
         const type = document.getElementById('eventType').value;
         const id = document.getElementById('sheetEventId').value;
         const btn = document.getElementById('btnSaveEvent');
-        
         if (!title) return alert("Title required");
-
-        btn.innerText = "Saving...";
-        btn.disabled = true;
+        btn.innerText = "Saving..."; btn.disabled = true;
 
         if (id) {
-            // UPDATE: /Id/{id} (Capitalized)
-            fetch(`${EVENTS_API}/Id/${encodeURIComponent(id)}`, {
-                method: "PATCH",
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ data: { Title: title, Type: type } })
-            })
-            .then(async res => {
-                if(res.ok) {
-                    closeModal('modal-add-event');
-                    fetchSheetEvents();
-                } else {
-                    alert("Error saving: " + await res.text());
-                }
-                btn.disabled = false;
-                btn.innerText = "Save";
-            });
+            fetch(`${EVENTS_API}/Id/${encodeURIComponent(id)}`, { method: "PATCH", headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: { Title: title, Type: type } }) })
+            .then(res => { closeModal('modal-add-event'); fetchSheetEvents(); btn.disabled = false; });
         } else {
-            // CREATE
             const newId = Date.now().toString(); 
             const newEvent = { Id: newId, Date: clickedDate, Title: title, Type: type };
-            
-            fetch(EVENTS_API, {
-                method: "POST",
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ data: newEvent })
-            })
-            .then(async res => {
-                if(res.ok) {
-                    closeModal('modal-add-event');
-                    fetchSheetEvents();
-                } else {
-                    alert("Error saving: " + await res.text());
-                }
-                btn.disabled = false;
-                btn.innerText = "Save";
-            });
+            fetch(EVENTS_API, { method: "POST", headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: newEvent }) })
+            .then(res => { closeModal('modal-add-event'); fetchSheetEvents(); btn.disabled = false; btn.innerText = "Save"; });
         }
     }
 
     function deleteEvent() {
         const id = document.getElementById('sheetEventId').value;
-        if(!id) { alert("Error: Event ID missing."); return; }
-        if(!confirm("Delete this event?")) return;
-
-        const btn = document.getElementById('btnDeleteEvent');
-        btn.innerText = "Deleting...";
-        btn.disabled = true;
-        
-        // DELETE: /Id/{id} (Capitalized)
+        if(!id || !confirm("Delete this event?")) return;
+        document.getElementById('btnDeleteEvent').innerText = "Deleting...";
         fetch(`${EVENTS_API}/Id/${encodeURIComponent(id)}`, { method: "DELETE" })
-        .then(async res => {
-            if(res.ok) {
-                closeModal('modal-add-event');
-                fetchSheetEvents();
-            } else {
-                alert("Error deleting: " + await res.text());
-            }
-            btn.innerText = "Delete";
-            btn.disabled = false;
+        .then(res => { closeModal('modal-add-event'); fetchSheetEvents(); document.getElementById('btnDeleteEvent').innerText = "Delete"; });
+    }
+
+    // --- 6. EMPLOYEE REQUESTS LOGIC (MANAGEMENT) ---
+    function fetchRequests() {
+        const container = document.getElementById('requestsContainer');
+        const spinner = document.getElementById('reqSpinner');
+        const noMsg = document.getElementById('noRequestsMsg');
+        container.innerHTML = ''; container.appendChild(spinner); spinner.style.display = 'block'; noMsg.style.display = 'none';
+
+        fetch(REQUESTS_API).then(res => res.json()).then(data => {
+            spinner.style.display = 'none';
+            const pendingReqs = data.filter(r => r.Status === "Pending");
+            if (pendingReqs.length === 0) { noMsg.style.display = 'block'; return; }
+
+            pendingReqs.forEach(req => {
+                const card = document.createElement('div');
+                card.className = 'req-card';
+                card.innerHTML = `
+                    <div class="req-info">
+                        <h5>${req.Employee} <span style="font-weight:normal; font-size:0.9rem; color:#888;">(${req.Date})</span></h5>
+                        <p><strong>${req.Title}</strong></p>
+                        <div class="req-reason">"${req.Reason}"</div>
+                    </div>
+                    <div>
+                        <button class="action-btn btn-approve" onclick="processRequest('${req.Id}', 'Approved')">Approve</button>
+                        <button class="action-btn btn-deny" onclick="openDenyModal('${req.Id}')">Deny</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }).catch(err => { spinner.style.display = 'none'; container.innerHTML = '<p style="color:red; text-align:center">Error loading requests.</p>'; });
+    }
+
+    function processRequest(id, status, reason = "") {
+        const updateUrl = `${REQUESTS_API}/Id/${encodeURIComponent(id)}`;
+        const payload = { "Status": status, "Admin_Comment": reason };
+
+        fetch(updateUrl, { method: "PATCH", headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: payload }) })
+        .then(res => {
+            if(res.ok) { alert(`Request ${status}!`); closeModal('modal-deny-req'); fetchRequests(); }
+            else { alert("Error updating request."); }
         });
     }
+
+    let currentDenyId = null;
+    function openDenyModal(id) { currentDenyId = id; document.getElementById('denyReason').value = ''; document.getElementById('modal-deny-req').style.display = 'flex'; }
+    function submitDeny() { const reason = document.getElementById('denyReason').value; if(!reason) return alert("Provide a reason."); processRequest(currentDenyId, 'Denied', reason); }
 
     // --- 7. Utility ---
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    function approveRequest(id) { document.getElementById(id).style.display = 'none'; alert("Request Approved"); }
-    function openDenyModal(id) { window.currentReqId = id; document.getElementById('denyReason').value = ''; openModal('modal-deny-req'); }
-    function submitDeny() { alert("Request Denied."); document.getElementById(window.currentReqId).style.display = 'none'; closeModal('modal-deny-req'); }
-
+    
+    // Initial Load
+    fetchRequests();
 </script>
+
+</body>
+</html>
