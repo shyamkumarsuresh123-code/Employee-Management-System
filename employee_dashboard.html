@@ -5,13 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Employee Portal - AI Infotech</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <style>
         /* --- Shared Styles --- */
         body, html { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; height: 100%; background-color: #f4f6f9; }
         .wrapper { display: flex; height: 100vh; width: 100%; }
-        
-        /* SIDEBAR */
         .sidebar { width: 260px; background-color: #0d253f; color: #ffffff; display: flex; flex-direction: column; flex-shrink: 0; height: 100vh; }
         .brand-logo { padding: 20px; text-align: center; background-color: #081b2e; border-bottom: 1px solid #1f3a56; }
         .sidebar-logo { max-width: 100%; height: auto; width: 180px; display: block; margin: 0 auto; }
@@ -20,10 +17,8 @@
         .nav-links li a:hover, .nav-links li a.active-link { background-color: #007bff; color: white; }
         .nav-links i { width: 25px; text-align: center; margin-right: 10px; }
         .sidebar-footer { padding: 20px; border-top: 1px solid #1f3a56; background-color: #081b2e; }
-        .btn-logout { display: flex; align-items: center; justify-content: center; width: 100%; padding: 12px 0; background-color: transparent; color: #dc3545; border: 1px solid #dc3545; border-radius: 5px; text-decoration: none; font-weight: bold; transition: all 0.3s ease; box-sizing: border-box; }
+        .btn-logout { display: flex; align-items: center; justify-content: center; width: 100%; padding: 12px 0; background-color: transparent; color: #dc3545; border: 1px solid #dc3545; border-radius: 5px; text-decoration: none; font-weight: bold; transition: all 0.3s ease; box-sizing: border-box; cursor: pointer; }
         .btn-logout:hover { background-color: #dc3545; color: white; }
-
-        /* MAIN CONTENT */
         .main-content { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; }
         .dashboard-top-bar { background-color: white; padding: 20px 30px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e0e0e0; }
         .date-widget { background-color: #f8f9fa; padding: 10px 20px; border-radius: 50px; border: 1px solid #ddd; color: #555; font-weight: 600; }
@@ -31,24 +26,17 @@
         .section-view { display: none; animation: fadeIn 0.3s ease-in-out; }
         .section-view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* WIDGETS */
         .balance-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
         .balance-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: center; border-bottom: 4px solid #007bff; }
         .balance-card h4 { margin: 0; color: #666; font-size: 0.9rem; text-transform: uppercase; }
         .balance-card .val { font-size: 2rem; font-weight: bold; color: #333; margin: 10px 0; }
-        
-        /* CLOCK SECTION */
         .clock-container { background: linear-gradient(135deg, #0056b3, #007bff); color: white; padding: 30px; border-radius: 10px; text-align: center; box-shadow: 0 4px 15px rgba(0, 86, 179, 0.3); margin-bottom: 30px; }
         .digital-clock { font-size: 3rem; font-weight: bold; letter-spacing: 2px; margin-bottom: 10px; font-family: 'Courier New', Courier, monospace; }
         .date-display { font-size: 1.2rem; margin-bottom: 20px; opacity: 0.9; }
-        
         .btn-punch { padding: 15px 40px; font-size: 1.2rem; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; }
         .btn-in { background-color: white; color: #0056b3; } 
         .btn-out { background-color: #d32f2f; color: white; }
         .btn-punch:active { transform: scale(0.95); }
-
-        /* TABLES & FORMS */
         .styled-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .styled-table thead tr { background-color: #f8f9fa; text-align: left; }
         .styled-table th, .styled-table td { padding: 15px; border-bottom: 1px solid #eee; }
@@ -57,23 +45,16 @@
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
         .form-control { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 1rem; box-sizing: border-box; }
+        .form-control:disabled { background-color: #e9ecef; color: #555; font-weight: bold; cursor: not-allowed; border: 1px solid #adb5bd; }
         .btn-submit { background-color: #0056b3; color: white; padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; width: 100%; }
         .btn-submit:hover { background-color: #004494; }
         .badge { padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
-        .bg-pending { background-color: #fff3cd; color: #856404; }
-        .bg-approved { background-color: #d4edda; color: #155724; }
-        .bg-denied { background-color: #f8d7da; color: #721c24; }
-        .btn-reason { background-color: #6c757d; color: white; border: none; padding: 3px 8px; font-size: 0.75rem; border-radius: 3px; cursor: pointer; margin-left: 8px; }
-        .btn-reason:hover { background-color: #5a6268; }
-
-        /* OTHERS */
-        .announce-card { background: white; border-left: 5px solid #ffc107; padding: 20px; margin-bottom: 15px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .announce-card.urgent { border-left-color: #dc3545; background-color: #fff8f8; }
-        .announce-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .announce-title { font-weight: bold; font-size: 1.1rem; }
-        .announce-date { color: #888; font-size: 0.85rem; }
-        
-        /* CALENDAR */
+        .bg-Pending { background-color: #fff3cd; color: #856404; }
+        .bg-Approved { background-color: #d4edda; color: #155724; }
+        .bg-Denied { background-color: #f8d7da; color: #721c24; }
+        .btn-reason { background-color: #007bff; color: white; border: none; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; cursor: pointer; margin-left: 10px; font-weight: bold; transition: background 0.3s; }
+        .btn-reason:hover { background-color: #0056b3; }
+        .btn-view-more { background: none; border: none; color: #0056b3; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
         .agenda-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .calendar-header { display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center; }
         .calendar-nav button { background: #e3f2fd; border: 1px solid #bbdefb; padding: 5px 15px; cursor: pointer; border-radius: 4px; color: #0056b3; }
@@ -84,15 +65,13 @@
         .day-number { font-weight: bold; font-size: 0.9rem; margin-bottom: 5px; width: 100%; text-align: right; color: #666;}
         .calendar-day.padding { background-color: #fcfcfc; cursor: default; }
         .calendar-day.current-day { background-color: #e3f2fd; border: 1px solid #007bff; }
-        
-        /* Event Badges */
-        .event-badge { font-size: 0.75rem; padding: 3px 6px; border-radius: 3px; margin-bottom: 3px; width: 90%; text-align: left; font-weight: bold; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-        .badge-meeting { background-color: #007bff; } 
-        .badge-urgent { background-color: #dc3545; } 
-        .badge-holiday { background-color: #28a745; } 
-        .badge-default { background-color: #ffc107; color: black; }
-        
-        .btn-view-more { background: none; border: none; color: #0056b3; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
+        .event-badge { font-size: 0.7rem; padding: 3px 5px; border-radius: 3px; margin-bottom: 2px; width: 90%; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: bold; color: white;}
+        .badge-meeting { background-color: #007bff; } .badge-urgent { background-color: #dc3545; } .badge-holiday { background-color: #28a745; } .badge-default { background-color: #ffc107; color: black; }
+        .announce-card { background: white; border-left: 5px solid #ffc107; padding: 20px; margin-bottom: 15px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .announce-card.urgent { border-left-color: #dc3545; background-color: #fff8f8; }
+        .announce-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .announce-title { font-weight: bold; font-size: 1.1rem; }
+        .announce-date { color: #888; font-size: 0.85rem; }
     </style>
 </head>
 <body>
@@ -107,7 +86,9 @@
             <li><a onclick="showSection('requests')" id="link-requests"><i class="fa-solid fa-paper-plane"></i> My Requests</a></li>
             <li><a onclick="showSection('announcements')" id="link-announcements"><i class="fa-solid fa-bullhorn"></i> Announcements</a></li>
         </ul>
-        <div class="sidebar-footer"><a href="index.html" class="btn-logout"><i class="fa-solid fa-power-off"></i> &nbsp; Logout</a></div>
+        <div class="sidebar-footer">
+            <a onclick="logout()" class="btn-logout"><i class="fa-solid fa-power-off"></i> &nbsp; Logout</a>
+        </div>
     </aside>
 
     <main class="main-content">
@@ -132,46 +113,23 @@
                 <h3>Recent Activity</h3>
                 <table class="styled-table">
                     <thead><tr><th>Date</th><th>Activity</th><th>Status</th></tr></thead>
-                    <tbody>
-                    <tr><td>Today</td><td>Login Detected</td><td><span class="badge bg-approved">Active</span></td></tr>
-                    </tbody>
+                    <tbody><tr><td>Today</td><td>Login Detected</td><td><span class="badge bg-Approved">Active</span></td></tr></tbody>
                 </table>
             </div>
 
             <div id="attendance" class="section-view">
-                <h3>Mark Attendance</h3>
-                <br>
+                <h3>Mark Attendance</h3><br>
                 <div class="clock-container">
                     <div class="date-display" id="clockDate">Loading...</div>
                     <div class="digital-clock" id="digitalClock">00:00:00</div>
-                    <button id="punchBtn" class="btn-punch btn-in" onclick="toggleAttendance()">
-                        <i class="fa-solid fa-fingerprint"></i> CHECK IN
-                    </button>
+                    <button id="punchBtn" class="btn-punch btn-in" onclick="toggleAttendance()"><i class="fa-solid fa-fingerprint"></i> CHECK IN</button>
                     <p id="statusMsg" style="margin-top: 15px; font-size: 0.9rem;">You are currently checked OUT</p>
                 </div>
-                <h3>Attendance History (Session Log)</h3>
+                <h3>Attendance History</h3>
                 <table class="styled-table" id="attendanceTable">
                     <thead><tr><th>Date</th><th>In Time</th><th>Out Time</th><th>Working Period</th><th>Status</th></tr></thead>
                     <tbody></tbody>
                 </table>
-            </div>
-
-            <div id="agenda" class="section-view">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h3>My Schedule / Agenda</h3>
-                    <button class="btn-view-more" onclick="fetchSheetEvents()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
-                </div>
-                <div class="agenda-card">
-                    <div class="calendar-header">
-                        <h2 id="monthYearDisplay">Month Year</h2>
-                        <div class="calendar-nav">
-                            <button onclick="changeMonth(-1)">Prev</button>
-                            <button onclick="changeMonth(1)">Next</button>
-                        </div>
-                    </div>
-                    <div class="calendar-grid" id="calendarGrid"></div>
-                    <p style="text-align: center; color: #666; margin-top:10px;"><small id="calLoading" style="display:none;">Loading events...</small></p>
-                </div>
             </div>
 
             <div id="requests" class="section-view">
@@ -180,23 +138,48 @@
                         <h3>Raise New Request</h3>
                         <div class="form-card">
                             <form onsubmit="submitRequest(event)">
-                                <div class="form-group"><label>Title</label><input type="text" id="reqTitle" class="form-control" required></div>
-                                <div class="form-group"><label>Date</label><input type="date" id="reqDate" class="form-control" required></div>
+                                <div class="form-group">
+                                    <label>Employee Name</label>
+                                    <input type="text" id="reqName" class="form-control" disabled>
+                                </div>
+                                <div class="form-group"><label>Title</label><input type="text" id="reqTitle" class="form-control" placeholder="e.g. Sick Leave" required></div>
+                                <div class="form-group">
+                                    <label>Date</label>
+                                    <input type="text" id="reqDate" class="form-control" placeholder="DD/MM/YYYY" required>
+                                </div>
                                 <div class="form-group"><label>Reason</label><textarea id="reqReason" class="form-control" rows="3" required></textarea></div>
-                                <button type="submit" class="btn-submit">Submit Request</button>
+                                <button type="submit" id="btnSubmitReq" class="btn-submit">Submit Request</button>
                             </form>
                         </div>
                     </div>
                     <div style="flex: 1;">
-                        <h3>My Request History</h3>
-                        <table class="styled-table" id="reqTable">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <h3>My Request History</h3>
+                            <button class="btn-view-more" onclick="fetchRequests()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+                        </div>
+                        <table class="styled-table">
                             <thead><tr><th>Title</th><th>Date</th><th>Status</th></tr></thead>
-                            <tbody><tr><td>Sick Leave</td><td>05 Dec 2025</td><td><span class="badge bg-approved">Approved</span></td></tr></tbody>
+                            <tbody id="reqTableBody"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
             
+            <div id="agenda" class="section-view">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3>My Schedule / Agenda</h3>
+                    <button class="btn-view-more" onclick="fetchSheetEvents()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+                </div>
+                <div class="agenda-card">
+                    <div class="calendar-header">
+                        <h2 id="monthYearDisplay">Month Year</h2>
+                        <div class="calendar-nav"><button onclick="changeMonth(-1)">Prev</button><button onclick="changeMonth(1)">Next</button></div>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid"></div>
+                    <p style="text-align: center; color: #666; margin-top:10px;"><small id="calLoading" style="display:none;">Loading events...</small></p>
+                </div>
+            </div>
+
             <div id="announcements" class="section-view">
                 <h3>Company Announcements</h3>
                 <div class="announce-card urgent"><div class="announce-header"><span class="announce-title">SERVER MAINTENANCE</span></div><p>Down 10PM-11PM.</p></div>
@@ -206,18 +189,37 @@
 </div>
 
 <script>
-    // --- 1. Init ---
+    // --- 1. USER SESSION LOGIC ---
+    const sessionName = sessionStorage.getItem("fullName");
+    const sessionRole = sessionStorage.getItem("userRole");
+
+    if (!sessionRole || sessionRole !== 'employee') {
+        window.location.href = "index.html";
+    }
+
+    const CURRENT_USER = sessionName ? sessionName : "Demo Employee";
+    
+    function logout() {
+        sessionStorage.clear();
+        window.location.href = "index.html";
+    }
+
+    // --- API CONFIG ---
+    const ATTENDANCE_API = "https://sheetdb.io/api/v1/arh117tr3hvvy";
+    let EVENTS_API = "https://sheetdb.io/api/v1/ixqhkw8b3j8e6"; 
+    if(EVENTS_API.endsWith('/')) EVENTS_API = EVENTS_API.slice(0, -1);
+    const REQUESTS_API = "https://sheetdb.io/api/v1/we2frfscvur6g"; 
+
     function showSection(sectionId) {
         document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
         document.getElementById(sectionId).classList.add('active');
         document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active-link'));
         document.getElementById('link-' + sectionId).classList.add('active-link');
         
-        // Auto-load calendar if tab is clicked
         if(sectionId === 'agenda') fetchSheetEvents();
+        if(sectionId === 'requests') fetchRequests();
     }
     
-    // --- 2. Clock ---
     function updateDateTime() {
         const now = new Date();
         document.getElementById('currentDate').innerText = now.toLocaleDateString('en-GB');
@@ -226,17 +228,23 @@
     }
     setInterval(updateDateTime, 1000);
     updateDateTime();
-    document.getElementById('empName').innerText = "Employee";
-
-    // --- 3. ATTENDANCE LOGIC (DECIMAL FIX INCLUDED) ---
-    const ATTENDANCE_API = "https://sheetdb.io/api/v1/arh117tr3hvvy"; 
     
+    document.getElementById('empName').innerText = CURRENT_USER;
+
+    // --- ATTENDANCE (UPDATED FOR UNIQUE USER LOGIC) ---
     let isCheckedIn = false;
     let checkInTimeObj = null;
 
+    // Create unique storage keys based on the logged-in user's name
+    const STORAGE_KEY_TIME = 'checkInTime_' + CURRENT_USER.replace(/\s/g, '');
+    const STORAGE_KEY_STR = 'checkInTimeStr_' + CURRENT_USER.replace(/\s/g, '');
+
     window.onload = function() {
-        // Attendance Restore
-        const storedCheckIn = localStorage.getItem('checkInTime');
+        document.getElementById('reqName').value = CURRENT_USER;
+
+        // Check Local Storage for THIS specific user
+        const storedCheckIn = localStorage.getItem(STORAGE_KEY_TIME);
+        
         if (storedCheckIn) {
             isCheckedIn = true;
             checkInTimeObj = new Date(storedCheckIn);
@@ -244,12 +252,14 @@
             const status = document.getElementById('statusMsg');
             btn.innerHTML = '<i class="fa-solid fa-door-open"></i> CHECK OUT';
             btn.classList.remove('btn-in'); btn.classList.add('btn-out');
+            
             const timeStr = checkInTimeObj.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit', second:'2-digit', hour12: true});
             status.innerText = "You are currently checked IN since " + timeStr;
             status.style.color = "#0056b3"; status.style.fontWeight = "bold";
         }
-        // Load events silently in background
+        
         fetchSheetEvents();
+        fetchRequests(); 
     };
 
     function toggleAttendance() {
@@ -263,32 +273,36 @@
         const sheetTimeStr = "'" + timeStr;
 
         const actionType = isCheckedIn ? "CHECK_OUT" : "CHECK_IN";
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
-        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...'; btn.disabled = true;
 
         if (actionType === "CHECK_IN") {
-            localStorage.setItem('checkInTime', now.toISOString());
-            localStorage.setItem('checkInTimeStr', timeStr); 
+            // Save to Local Storage using UNIQUE key
+            localStorage.setItem(STORAGE_KEY_TIME, now.toISOString());
+            localStorage.setItem(STORAGE_KEY_STR, timeStr); 
+            
             checkInTimeObj = now;
-
-            const data = { "Date": sheetDateStr, "InTime": sheetTimeStr, "OutTime": "", "WorkingPeriod": "Active...", "Action": "Active" };
-
-            fetch(ATTENDANCE_API, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: data })
-            }).then(res => res.json()).then(result => {
+            
+            // Added "Employee Name" to the data payload
+            const data = { 
+                "Employee Name": CURRENT_USER, 
+                "Date": sheetDateStr, 
+                "InTime": sheetTimeStr, 
+                "OutTime": "", 
+                "WorkingPeriod": "Active...", 
+                "Action": "Active" 
+            };
+            
+            fetch(ATTENDANCE_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: data }) }).then(res => res.json()).then(result => {
                 btn.disabled = false; isCheckedIn = true;
-                btn.innerHTML = '<i class="fa-solid fa-door-open"></i> CHECK OUT';
-                btn.classList.remove('btn-in'); btn.classList.add('btn-out');
-                status.innerText = "You are currently checked IN since " + timeStr;
-                status.style.color = "#0056b3"; status.style.fontWeight = "bold";
-                const newRow = table.insertRow(0);
-                newRow.innerHTML = `<td>${now.toLocaleDateString('en-GB')}</td><td>${timeStr}</td><td>--</td><td>Active...</td><td><span class="badge bg-pending">Active</span></td>`;
-                newRow.id = "currentRow"; 
-                alert("Checked In Successfully!");
+                btn.innerHTML = '<i class="fa-solid fa-door-open"></i> CHECK OUT'; btn.classList.remove('btn-in'); btn.classList.add('btn-out');
+                status.innerText = "You are currently checked IN since " + timeStr; status.style.color = "#0056b3"; status.style.fontWeight = "bold";
+                const newRow = table.insertRow(0); newRow.innerHTML = `<td>${now.toLocaleDateString('en-GB')}</td><td>${timeStr}</td><td>--</td><td>Active...</td><td><span class="badge bg-pending">Active</span></td>`;
+                newRow.id = "currentRow"; alert("Checked In Successfully!");
             });
         } else {
             let durationStr = "N/A";
-            let startTimeStr = localStorage.getItem('checkInTimeStr') || "---";
+            let startTimeStr = localStorage.getItem(STORAGE_KEY_STR) || "---";
+            
             if(checkInTimeObj) {
                 const diffMs = now - checkInTimeObj;
                 const totalSeconds = Math.floor(diffMs / 1000);
@@ -297,45 +311,102 @@
                 const secs = totalSeconds % 60;
                 durationStr = `${hours}h ${mins}m ${secs}s`;
             }
-            localStorage.removeItem('checkInTime'); localStorage.removeItem('checkInTimeStr');
             
-            const data = { "Date": sheetDateStr, "InTime": "'" + startTimeStr, "OutTime": sheetTimeStr, "WorkingPeriod": durationStr, "Action": "Completed" };
-
-            fetch(ATTENDANCE_API, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: data })
-            }).then(res => res.json()).then(result => {
+            // Remove from UNIQUE storage key
+            localStorage.removeItem(STORAGE_KEY_TIME); 
+            localStorage.removeItem(STORAGE_KEY_STR);
+            
+            const data = { 
+                "Employee Name": CURRENT_USER, 
+                "Date": sheetDateStr, 
+                "InTime": "'" + startTimeStr, 
+                "OutTime": sheetTimeStr, 
+                "WorkingPeriod": durationStr, 
+                "Action": "Completed" 
+            };
+            
+            fetch(ATTENDANCE_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: data }) }).then(res => res.json()).then(result => {
                 btn.disabled = false; isCheckedIn = false;
-                btn.innerHTML = '<i class="fa-solid fa-fingerprint"></i> CHECK IN';
-                btn.classList.remove('btn-out'); btn.classList.add('btn-in');
+                btn.innerHTML = '<i class="fa-solid fa-fingerprint"></i> CHECK IN'; btn.classList.remove('btn-out'); btn.classList.add('btn-in');
                 status.innerText = "You are currently checked OUT"; status.style.color = "#666"; status.style.fontWeight = "normal";
                 const row = document.getElementById('currentRow');
-                if(row) { row.cells[2].innerText = timeStr; row.cells[3].innerText = durationStr; row.cells[4].innerHTML = '<span class="badge bg-approved">Present</span>'; row.removeAttribute('id'); }
-                else { const newRow = table.insertRow(0); newRow.innerHTML = `<td>${now.toLocaleDateString('en-GB')}</td><td>${startTimeStr}</td><td>${timeStr}</td><td>${durationStr}</td><td><span class="badge bg-approved">Present</span></td>`; }
+                if(row) { row.cells[2].innerText = timeStr; row.cells[3].innerText = durationStr; row.cells[4].innerHTML = '<span class="badge bg-Approved">Present</span>'; row.removeAttribute('id'); }
+                else { const newRow = table.insertRow(0); newRow.innerHTML = `<td>${now.toLocaleDateString('en-GB')}</td><td>${startTimeStr}</td><td>${timeStr}</td><td>${durationStr}</td><td><span class="badge bg-Approved">Present</span></td>`; }
                 alert("Checked Out! Total Time: " + durationStr);
             });
         }
     }
 
-    function submitRequest(event) { event.preventDefault(); alert("Request Submitted!"); document.querySelector('form').reset(); }
+    // --- 4. REQUESTS LOGIC ---
+    function submitRequest(event) {
+        event.preventDefault();
+        const title = document.getElementById('reqTitle').value;
+        const dateRaw = document.getElementById('reqDate').value;
+        const reason = document.getElementById('reqReason').value;
+        const btn = document.getElementById('btnSubmitReq');
 
-    // --- 4. CALENDAR LOGIC (READ-ONLY) ---
-    // ✅ SAME EVENT SHEET API AS MANAGEMENT
-    let EVENTS_API = "https://sheetdb.io/api/v1/ixqhkw8b3j8e6"; 
-    if(EVENTS_API.endsWith('/')) EVENTS_API = EVENTS_API.slice(0, -1);
+        if(!title || !dateRaw) return alert("Fill fields");
 
-    let nav = 0; 
-    let events = [];
+        btn.innerText = "Submitting..."; btn.disabled = true;
+
+        const safeDate = "'" + dateRaw;
+
+        const newReq = { 
+            "Id": Date.now().toString(), 
+            "Employee": CURRENT_USER, 
+            "Title": title, 
+            "Date": safeDate, 
+            "Reason": reason, 
+            "Status": "Pending", 
+            "Admin_Comment": "" 
+        };
+
+        fetch(REQUESTS_API, { method: "POST", headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: newReq }) })
+        .then(async res => {
+            if(res.ok) { alert("Request Submitted!"); document.querySelector('form').reset(); document.getElementById('reqName').value = CURRENT_USER; fetchRequests(); }
+            else { alert("Error submitting: " + await res.text()); }
+            btn.innerText = "Submit Request"; btn.disabled = false;
+        });
+    }
+
+    function fetchRequests() {
+        const tbody = document.getElementById('reqTableBody');
+        tbody.innerHTML = '<tr><td colspan="3">Loading...</td></tr>';
+        fetch(REQUESTS_API).then(res => res.json()).then(data => {
+            tbody.innerHTML = '';
+            const myRequests = data.filter(r => r.Employee === CURRENT_USER);
+            
+            myRequests.forEach(req => {
+                let statusBadge = 'bg-Pending';
+                if(req.Status === 'Approved') statusBadge = 'bg-Approved';
+                if(req.Status === 'Denied') statusBadge = 'bg-Denied';
+                
+                let statusHtml = `<span class="badge ${statusBadge}">${req.Status}</span>`;
+                if(req.Status === "Denied" && req.Admin_Comment) {
+                    const safeComment = req.Admin_Comment.replace(/'/g, "\\'");
+                    statusHtml += ` <button class="btn-reason" onclick="alert('Admin Note: ${safeComment}')">Reason</button>`;
+                }
+                const tr = document.createElement('tr');
+                const displayDate = req.Date ? req.Date.replace("'", "") : "";
+                tr.innerHTML = `<td>${req.Title}</td><td>${displayDate}</td><td>${statusHtml}</td>`;
+                tbody.appendChild(tr);
+            });
+            if(myRequests.length === 0) tbody.innerHTML = '<tr><td colspan="3">No requests found.</td></tr>';
+        }).catch(err => { tbody.innerHTML = '<tr><td colspan="3" style="color:red">Failed to load.</td></tr>'; });
+    }
+
+    // --- 5. CALENDAR LOGIC ---
+    let nav = 0; let events = [];
     const calendarGrid = document.getElementById('calendarGrid');
 
     function fetchSheetEvents() {
         document.getElementById('calLoading').style.display = 'block';
         fetch(EVENTS_API).then(res => res.json()).then(data => {
-            // MAP KEYS (Capitalized in Sheet -> lowercase in JS)
-            events = data.map(ev => ({
-                id: ev.Id || ev.id,
-                date: ev.Date || ev.date,
-                title: ev.Title || ev.title,
-                type: ev.Type || ev.type
+            events = data.map(ev => ({ 
+                id: ev.Id, 
+                date: ev.Date ? ev.Date.replace("'", "") : "", 
+                title: ev.Title, 
+                type: ev.Type 
             }));
             document.getElementById('calLoading').style.display = 'none';
             loadCalendar(); 
@@ -356,9 +427,7 @@
         for(let i=1; i<=daysInMonth; i++) {
             const div = document.createElement('div'); div.classList.add('calendar-day');
             div.innerHTML = `<div class="day-number">${i}</div>`;
-            const dateStr = `${month+1}/${i}/${year}`;
-            
-            // Render Badges
+            const dateStr = `${month+1}/${i}/${year}`; // M/D/YYYY
             const dayEvents = events.filter(e => e.date === dateStr);
             dayEvents.forEach(ev => {
                 const badge = document.createElement('div');
@@ -371,7 +440,6 @@
     }
     
     function changeMonth(d) { nav += d; loadCalendar(); }
-    
 </script>
 </body>
 </html>
