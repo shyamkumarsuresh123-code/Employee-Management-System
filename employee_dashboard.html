@@ -67,11 +67,16 @@
         .calendar-day.current-day { background-color: #e3f2fd; border: 1px solid #007bff; }
         .event-badge { font-size: 0.7rem; padding: 3px 5px; border-radius: 3px; margin-bottom: 2px; width: 90%; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: bold; color: white;}
         .badge-meeting { background-color: #007bff; } .badge-urgent { background-color: #dc3545; } .badge-holiday { background-color: #28a745; } .badge-default { background-color: #ffc107; color: black; }
+        
+        /* ANNOUNCEMENT CARD STYLES */
         .announce-card { background: white; border-left: 5px solid #ffc107; padding: 20px; margin-bottom: 15px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .announce-card.urgent { border-left-color: #dc3545; background-color: #fff8f8; }
         .announce-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
         .announce-title { font-weight: bold; font-size: 1.1rem; }
         .announce-date { color: #888; font-size: 0.85rem; }
+        
+        /* Dashboard specific Urgent alert margin */
+        #dashboardUrgentContainer .announce-card.urgent { margin-bottom: 25px; box-shadow: 0 4px 10px rgba(220, 53, 69, 0.15); }
     </style>
 </head>
 <body>
@@ -103,6 +108,9 @@
 
         <div class="content-container">
             <div id="dashboard" class="section-view active">
+                
+                <div id="dashboardUrgentContainer"></div>
+
                 <h3>Leave Balance</h3>
                 <div class="balance-grid">
                     <div class="balance-card"><h4>Casual Leave</h4><div class="val">8.0</div><small>Available</small></div>
@@ -181,8 +189,14 @@
             </div>
 
             <div id="announcements" class="section-view">
-                <h3>Company Announcements</h3>
-                <div class="announce-card urgent"><div class="announce-header"><span class="announce-title">SERVER MAINTENANCE</span></div><p>Down 10PM-11PM.</p></div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3>All Announcements</h3>
+                    <button class="btn-view-more" onclick="fetchAnnouncements()">Refresh</button>
+                </div>
+                <br>
+                <div id="announcementContainer">
+                    <p style="text-align:center; color:#666;">Loading announcements...</p>
+                </div>
             </div>
         </div>
     </main>
@@ -209,6 +223,9 @@
     let EVENTS_API = "https://sheetdb.io/api/v1/ixqhkw8b3j8e6"; 
     if(EVENTS_API.endsWith('/')) EVENTS_API = EVENTS_API.slice(0, -1);
     const REQUESTS_API = "https://sheetdb.io/api/v1/we2frfscvur6g"; 
+    
+    // ✅ ANNOUNCE API
+    const ANNOUNCE_API = "https://sheetdb.io/api/v1/yuri25foqz5l7"; 
 
     function showSection(sectionId) {
         document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
@@ -218,6 +235,7 @@
         
         if(sectionId === 'agenda') fetchSheetEvents();
         if(sectionId === 'requests') fetchRequests();
+        if(sectionId === 'announcements') fetchAnnouncements(); 
     }
     
     function updateDateTime() {
@@ -231,20 +249,15 @@
     
     document.getElementById('empName').innerText = CURRENT_USER;
 
-    // --- ATTENDANCE (UPDATED FOR UNIQUE USER LOGIC) ---
+    // --- ATTENDANCE ---
     let isCheckedIn = false;
     let checkInTimeObj = null;
-
-    // Create unique storage keys based on the logged-in user's name
     const STORAGE_KEY_TIME = 'checkInTime_' + CURRENT_USER.replace(/\s/g, '');
     const STORAGE_KEY_STR = 'checkInTimeStr_' + CURRENT_USER.replace(/\s/g, '');
 
     window.onload = function() {
         document.getElementById('reqName').value = CURRENT_USER;
-
-        // Check Local Storage for THIS specific user
         const storedCheckIn = localStorage.getItem(STORAGE_KEY_TIME);
-        
         if (storedCheckIn) {
             isCheckedIn = true;
             checkInTimeObj = new Date(storedCheckIn);
@@ -252,14 +265,13 @@
             const status = document.getElementById('statusMsg');
             btn.innerHTML = '<i class="fa-solid fa-door-open"></i> CHECK OUT';
             btn.classList.remove('btn-in'); btn.classList.add('btn-out');
-            
             const timeStr = checkInTimeObj.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit', second:'2-digit', hour12: true});
             status.innerText = "You are currently checked IN since " + timeStr;
             status.style.color = "#0056b3"; status.style.fontWeight = "bold";
         }
-        
         fetchSheetEvents();
         fetchRequests(); 
+        fetchAnnouncements(); // Load automatically on login
     };
 
     function toggleAttendance() {
@@ -276,22 +288,10 @@
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...'; btn.disabled = true;
 
         if (actionType === "CHECK_IN") {
-            // Save to Local Storage using UNIQUE key
             localStorage.setItem(STORAGE_KEY_TIME, now.toISOString());
             localStorage.setItem(STORAGE_KEY_STR, timeStr); 
-            
             checkInTimeObj = now;
-            
-            // Added "Employee Name" to the data payload
-            const data = { 
-                "Employee Name": CURRENT_USER, 
-                "Date": sheetDateStr, 
-                "InTime": sheetTimeStr, 
-                "OutTime": "", 
-                "WorkingPeriod": "Active...", 
-                "Action": "Active" 
-            };
-            
+            const data = { "Employee Name": CURRENT_USER, "Date": sheetDateStr, "InTime": sheetTimeStr, "OutTime": "", "WorkingPeriod": "Active...", "Action": "Active" };
             fetch(ATTENDANCE_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: data }) }).then(res => res.json()).then(result => {
                 btn.disabled = false; isCheckedIn = true;
                 btn.innerHTML = '<i class="fa-solid fa-door-open"></i> CHECK OUT'; btn.classList.remove('btn-in'); btn.classList.add('btn-out');
@@ -302,7 +302,6 @@
         } else {
             let durationStr = "N/A";
             let startTimeStr = localStorage.getItem(STORAGE_KEY_STR) || "---";
-            
             if(checkInTimeObj) {
                 const diffMs = now - checkInTimeObj;
                 const totalSeconds = Math.floor(diffMs / 1000);
@@ -311,20 +310,8 @@
                 const secs = totalSeconds % 60;
                 durationStr = `${hours}h ${mins}m ${secs}s`;
             }
-            
-            // Remove from UNIQUE storage key
-            localStorage.removeItem(STORAGE_KEY_TIME); 
-            localStorage.removeItem(STORAGE_KEY_STR);
-            
-            const data = { 
-                "Employee Name": CURRENT_USER, 
-                "Date": sheetDateStr, 
-                "InTime": "'" + startTimeStr, 
-                "OutTime": sheetTimeStr, 
-                "WorkingPeriod": durationStr, 
-                "Action": "Completed" 
-            };
-            
+            localStorage.removeItem(STORAGE_KEY_TIME); localStorage.removeItem(STORAGE_KEY_STR);
+            const data = { "Employee Name": CURRENT_USER, "Date": sheetDateStr, "InTime": "'" + startTimeStr, "OutTime": sheetTimeStr, "WorkingPeriod": durationStr, "Action": "Completed" };
             fetch(ATTENDANCE_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: data }) }).then(res => res.json()).then(result => {
                 btn.disabled = false; isCheckedIn = false;
                 btn.innerHTML = '<i class="fa-solid fa-fingerprint"></i> CHECK IN'; btn.classList.remove('btn-out'); btn.classList.add('btn-in');
@@ -337,89 +324,53 @@
         }
     }
 
-    // --- 4. REQUESTS LOGIC ---
+    // --- REQUESTS ---
     function submitRequest(event) {
         event.preventDefault();
         const title = document.getElementById('reqTitle').value;
         const dateRaw = document.getElementById('reqDate').value;
         const reason = document.getElementById('reqReason').value;
         const btn = document.getElementById('btnSubmitReq');
-
         if(!title || !dateRaw) return alert("Fill fields");
-
         btn.innerText = "Submitting..."; btn.disabled = true;
-
         const safeDate = "'" + dateRaw;
-
-        const newReq = { 
-            "Id": Date.now().toString(), 
-            "Employee": CURRENT_USER, 
-            "Title": title, 
-            "Date": safeDate, 
-            "Reason": reason, 
-            "Status": "Pending", 
-            "Admin_Comment": "" 
-        };
-
-        fetch(REQUESTS_API, { method: "POST", headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: newReq }) })
-        .then(async res => {
+        const newReq = { "Id": Date.now().toString(), "Employee": CURRENT_USER, "Title": title, "Date": safeDate, "Reason": reason, "Status": "Pending", "Admin_Comment": "" };
+        fetch(REQUESTS_API, { method: "POST", headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: newReq }) }).then(async res => {
             if(res.ok) { alert("Request Submitted!"); document.querySelector('form').reset(); document.getElementById('reqName').value = CURRENT_USER; fetchRequests(); }
             else { alert("Error submitting: " + await res.text()); }
             btn.innerText = "Submit Request"; btn.disabled = false;
         });
     }
-
     function fetchRequests() {
-        const tbody = document.getElementById('reqTableBody');
-        tbody.innerHTML = '<tr><td colspan="3">Loading...</td></tr>';
+        const tbody = document.getElementById('reqTableBody'); tbody.innerHTML = '<tr><td colspan="3">Loading...</td></tr>';
         fetch(REQUESTS_API).then(res => res.json()).then(data => {
-            tbody.innerHTML = '';
-            const myRequests = data.filter(r => r.Employee === CURRENT_USER);
-            
+            tbody.innerHTML = ''; const myRequests = data.filter(r => r.Employee === CURRENT_USER);
             myRequests.forEach(req => {
-                let statusBadge = 'bg-Pending';
-                if(req.Status === 'Approved') statusBadge = 'bg-Approved';
-                if(req.Status === 'Denied') statusBadge = 'bg-Denied';
-                
+                let statusBadge = 'bg-Pending'; if(req.Status === 'Approved') statusBadge = 'bg-Approved'; if(req.Status === 'Denied') statusBadge = 'bg-Denied';
                 let statusHtml = `<span class="badge ${statusBadge}">${req.Status}</span>`;
-                if(req.Status === "Denied" && req.Admin_Comment) {
-                    const safeComment = req.Admin_Comment.replace(/'/g, "\\'");
-                    statusHtml += ` <button class="btn-reason" onclick="alert('Admin Note: ${safeComment}')">Reason</button>`;
-                }
-                const tr = document.createElement('tr');
-                const displayDate = req.Date ? req.Date.replace("'", "") : "";
-                tr.innerHTML = `<td>${req.Title}</td><td>${displayDate}</td><td>${statusHtml}</td>`;
-                tbody.appendChild(tr);
+                if(req.Status === "Denied" && req.Admin_Comment) { const safeComment = req.Admin_Comment.replace(/'/g, "\\'"); statusHtml += ` <button class="btn-reason" onclick="alert('Admin Note: ${safeComment}')">Reason</button>`; }
+                const tr = document.createElement('tr'); const displayDate = req.Date ? req.Date.replace("'", "") : "";
+                tr.innerHTML = `<td>${req.Title}</td><td>${displayDate}</td><td>${statusHtml}</td>`; tbody.appendChild(tr);
             });
             if(myRequests.length === 0) tbody.innerHTML = '<tr><td colspan="3">No requests found.</td></tr>';
         }).catch(err => { tbody.innerHTML = '<tr><td colspan="3" style="color:red">Failed to load.</td></tr>'; });
     }
 
-    // --- 5. CALENDAR LOGIC ---
+    // --- CALENDAR ---
     let nav = 0; let events = [];
     const calendarGrid = document.getElementById('calendarGrid');
-
     function fetchSheetEvents() {
         document.getElementById('calLoading').style.display = 'block';
         fetch(EVENTS_API).then(res => res.json()).then(data => {
-            events = data.map(ev => ({ 
-                id: ev.Id, 
-                date: ev.Date ? ev.Date.replace("'", "") : "", 
-                title: ev.Title, 
-                type: ev.Type 
-            }));
-            document.getElementById('calLoading').style.display = 'none';
-            loadCalendar(); 
+            events = data.map(ev => ({ id: ev.Id, date: ev.Date ? ev.Date.replace("'", "") : "", title: ev.Title, type: ev.Type }));
+            document.getElementById('calLoading').style.display = 'none'; loadCalendar(); 
         }).catch(err => { document.getElementById('calLoading').innerText = "Failed to load events."; });
     }
-    
     function loadCalendar() {
-        const dt = new Date();
-        if (nav !== 0) dt.setMonth(new Date().getMonth() + nav);
+        const dt = new Date(); if (nav !== 0) dt.setMonth(new Date().getMonth() + nav);
         const month = dt.getMonth(); const year = dt.getFullYear();
         const firstDay = new Date(year, month, 1); const daysInMonth = new Date(year, month + 1, 0).getDate();
         const padding = firstDay.getDay();
-
         document.getElementById('monthYearDisplay').innerText = dt.toLocaleDateString('en-us', { month: 'long', year: 'numeric' });
         calendarGrid.innerHTML = '';
         ['S','M','T','W','T','F','S'].forEach(d => { const div = document.createElement('div'); div.classList.add('day-name'); div.innerText = d; calendarGrid.appendChild(div); });
@@ -427,19 +378,65 @@
         for(let i=1; i<=daysInMonth; i++) {
             const div = document.createElement('div'); div.classList.add('calendar-day');
             div.innerHTML = `<div class="day-number">${i}</div>`;
-            const dateStr = `${month+1}/${i}/${year}`; // M/D/YYYY
-            const dayEvents = events.filter(e => e.date === dateStr);
-            dayEvents.forEach(ev => {
-                const badge = document.createElement('div');
-                badge.className = `event-badge ${ev.type || 'badge-default'}`;
-                badge.innerText = ev.title;
-                div.appendChild(badge);
-            });
+            const dateStr = `${month+1}/${i}/${year}`;
+            events.filter(e => e.date === dateStr).forEach(ev => { const badge = document.createElement('div'); badge.className = `event-badge ${ev.type || 'badge-default'}`; badge.innerText = ev.title; div.appendChild(badge); });
             calendarGrid.appendChild(div);
         }
     }
-    
     function changeMonth(d) { nav += d; loadCalendar(); }
+
+    // --- ✅ FETCH ANNOUNCEMENTS (DASHBOARD URGENT + SIDEBAR ALL) ---
+    function fetchAnnouncements() {
+        const allContainer = document.getElementById('announcementContainer');
+        const dashContainer = document.getElementById('dashboardUrgentContainer');
+
+        allContainer.innerHTML = '<p style="text-align:center; color:#666;">Refreshing...</p>';
+        
+        // Only clear dash container if it exists (it does on dashboard view)
+        if(dashContainer) dashContainer.innerHTML = '';
+
+        fetch(ANNOUNCE_API)
+            .then(res => res.json())
+            .then(data => {
+                allContainer.innerHTML = '';
+                
+                // Show latest first
+                const reversedData = data.reverse(); 
+
+                if(reversedData.length === 0) {
+                    allContainer.innerHTML = '<p>No announcements yet.</p>';
+                    return;
+                }
+
+                reversedData.forEach(ann => {
+                    const cleanDate = ann.Date ? ann.Date.replace("'", "") : "";
+                    const typeClass = ann.Type === 'Urgent' ? 'urgent' : '';
+                    const title = ann.Type === 'Urgent' ? 'URGENT ANNOUNCEMENT' : 'General Announcement';
+                    
+                    // Create HTML String for Card
+                    const cardHTML = `
+                        <div class="announce-card ${typeClass}">
+                            <div class="announce-header">
+                                <span class="announce-title">${title}</span>
+                                <span class="announce-date">${cleanDate}</span>
+                            </div>
+                            <p>${ann.Message}</p>
+                        </div>
+                    `;
+
+                    // 1. Add ALL announcements to the main list
+                    allContainer.insertAdjacentHTML('beforeend', cardHTML);
+
+                    // 2. Add ONLY URGENT announcements to the Dashboard top area
+                    if (ann.Type === 'Urgent' && dashContainer) {
+                        dashContainer.insertAdjacentHTML('beforeend', cardHTML);
+                    }
+                });
+            })
+            .catch(err => {
+                allContainer.innerHTML = '<p style="color:red">Failed to load announcements.</p>';
+            });
+    }
 </script>
 </body>
 </html>
