@@ -17,64 +17,84 @@
             animation: fadeIn 0.5s;
         }
 
-        /* Show Management by default via JS */
-        #management-section { background-color: #f8f9fa; color: #333; }
-        #employee-section { background-color: #f8f9fa; color: #333; }
+        /* --- SECTION BACKGROUNDS --- */
+        /* Management: Light Gold/Cream */
+        #management-section { background-color: #fcf3cf; color: #333; } 
+        
+        /* HR: Light Purple */
+        #hr-section { background-color: #f3eaf8; color: #333; } 
+        
+        /* Employee: Light Teal (Updated) */
+        #employee-section { background-color: #e0f2f1; color: #333; } 
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         /* --- LOGO STYLE --- */
         .logo {
-            width: 280px; 
+            width: 250px; 
             height: auto;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             display: block;
-            background-color: #0056b3; 
             padding: 15px 30px;
             border-radius: 50px; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2); 
         }
+        
+        /* --- PORTAL SPECIFIC LOGO BACKGROUNDS --- */
+        .logo-mgmt { background-color: #d68910; } /* Gold */
+        .logo-hr { background-color: #8e44ad; }   /* Purple */
+        .logo-emp { background-color: #004D40; }  /* Dark Teal */
 
         /* --- TITLE STYLES --- */
         h1 { 
             margin-bottom: 10px; 
-            color: #000000; 
+            color: #333; 
             text-transform: uppercase; 
             letter-spacing: 1px;
             font-size: 1.8rem;
         }
 
-        h2 { margin-bottom: 30px; }
-
         /* FORM STYLES */
-        form { display: flex; flex-direction: column; gap: 15px; width: 320px; background: rgba(255,255,255,0.1); padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        #management-section form { background: white; border: 1px solid #ddd; }
+        form { display: flex; flex-direction: column; gap: 15px; width: 320px; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid #ddd; }
 
         input { padding: 12px; border-radius: 5px; border: 1px solid #ccc; font-size: 14px; }
 
         /* BUTTONS */
         button { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; color: white; transition: 0.3s; margin-top: 10px;}
 
-        .btn-mgmt { background-color: #27ae60; }
-        .btn-mgmt:hover { background-color: #219150; }
+        /* --- THEME BUTTON COLORS --- */
+        
+        /* Management: Gold */
+        .btn-mgmt { background-color: #f39c12; } 
+        .btn-mgmt:hover { background-color: #d35400; }
 
-        .btn-emp { background-color: #27ae60; }
-        .btn-emp:hover { background-color: #219150; }
+        /* HR: Purple */
+        .btn-hr { background-color: #8e44ad; } 
+        .btn-hr:hover { background-color: #732d91; }
+
+        /* Employee: TEAL (Updated) */
+        .btn-emp { background-color: #009688; } 
+        .btn-emp:hover { background-color: #00796B; }
+
+        /* NAVIGATION BUTTON CONTAINER */
+        .nav-container {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+        }
 
         /* SWITCH BUTTONS */
         .switch-btn {
             background: transparent;
             border: 2px solid;
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 14px;
-            color: #0056b3; 
-            border-color: #0056b3; 
+            padding: 8px 15px;
+            font-size: 13px;
+            cursor: pointer;
+            margin-top: 0;
+            color: #555; 
+            border-color: #555; 
         }
-        .switch-btn:hover { 
-            background: #0056b3; 
-            color: white; 
-        }
+        .switch-btn:hover { background: #555; color: white; }
 
         /* LINKS */
         a { color: #0056b3; text-decoration: none; font-weight: bold; }
@@ -88,71 +108,71 @@
         .scroll-form { max-height: 400px; overflow-y: auto; padding-right: 10px; }
         .scroll-form input { width: 90%; margin-bottom: 5px;}
         
-        /* Loading Spinner */
-        #loading { display: none; text-align: center; margin-top: 10px; font-weight: bold; color: #0056b3; }
-        
         /* DOB Label inside Modal */
-        .dob-label {
-            display: block;
-            font-size: 13px;
-            color: #666;
-            margin-bottom: -10px;
-            margin-left: 2px;
-            text-align: left;
-        }
+        .dob-label { display: block; font-size: 13px; color: #666; margin-bottom: -10px; margin-left: 2px; text-align: left; }
     </style>
 </head>
 <body>
 
 <div id="management-section" class="full-screen-section" style="display: flex;">
-    <img src="aiinfo.webp" alt="AI Infotech Logo" class="logo">
-    <h1>Management Portal</h1>
+    <img src="aiinfo.webp" alt="AI Infotech Logo" class="logo logo-mgmt">
+    <h1 style="color: #d35400;">Management Portal</h1>
 
     <form onsubmit="handleLogin(event, 'management')">
-        <label>Welcome Back!</label>
-        <label>Enter User ID</label>
-        <input type="text" id="mgmt-id" name="username" placeholder="Login ID" required>
-        
-        <label>Enter Password</label>
+        <label>Welcome Back, Admin</label>
+        <input type="text" id="mgmt-id" name="username" placeholder="Admin ID" required>
         <input type="password" id="mgmt-pass" name="password" placeholder="Password" required>
-        
-        <button type="submit" class="btn-mgmt">Login</button>
+        <button type="submit" class="btn-mgmt">Login to Management</button>
     </form>
 
-    <button class="switch-btn" onclick="showEmployee()">
-        Go to Employee Portal &rarr;
-    </button>
+    <div class="nav-container">
+        <button class="switch-btn" onclick="showHR()">Go to HR Portal</button>
+        <button class="switch-btn" onclick="showEmployee()">Go to Employee Portal</button>
+    </div>
+</div>
+
+<div id="hr-section" class="full-screen-section">
+    <img src="aiinfo.webp" alt="AI Infotech Logo" class="logo logo-hr">
+    <h1 style="color: #8e44ad;">HR Portal</h1>
+
+    <form onsubmit="handleLogin(event, 'hr')">
+        <label>Welcome Back, HR Team</label>
+        <input type="text" id="hr-id" name="username" placeholder="HR ID" required>
+        <input type="password" id="hr-pass" name="password" placeholder="Password" required>
+        <button type="submit" class="btn-hr">Login to HR</button>
+    </form>
+
+    <div class="nav-container">
+        <button class="switch-btn" onclick="showManagement()">Go to Management</button>
+        <button class="switch-btn" onclick="showEmployee()">Go to Employee Portal</button>
+    </div>
 </div>
 
 <div id="employee-section" class="full-screen-section">
-    <img src="aiinfo.webp" alt="AI Infotech Logo" class="logo">
-    <h1>Employee Portal</h1>
+    <img src="aiinfo.webp" alt="AI Infotech Logo" class="logo logo-emp">
+    <h1 style="color: #009688;">Employee Portal</h1>
 
     <form onsubmit="handleLogin(event, 'employee')">
-        <label>Welcome Back!</label>
-        <label>Enter User ID</label>
-        <input type="text" id="emp-id" name="username" placeholder="Login ID" required>
-        
-        <label>Enter Password</label>
+        <label>Employee Login</label>
+        <input type="text" id="emp-id" name="username" placeholder="Employee ID" required>
         <input type="password" id="emp-pass" name="password" placeholder="Password" required>
-        
         <button type="submit" class="btn-emp">Login</button>
-        <div id="loading">Checking Database...</div>
     </form>
 
     <p style="margin-top: 20px;">
-        New Employee? <a href="#" onclick="openModal()">Register Here</a>
+        New Employee? <a href="#" onclick="openModal()" style="color:#009688;">Register Here</a>
     </p>
 
-    <button class="switch-btn" onclick="showManagement()">
-        &larr; Back to Management
-    </button>
+    <div class="nav-container">
+        <button class="switch-btn" onclick="showManagement()">Go to Management</button>
+        <button class="switch-btn" onclick="showHR()">Go to HR Portal</button>
+    </div>
 </div>
 
 <div id="regModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeModal()">&times;</span>
-        <h2 style="text-align: center; margin-top: 0;">New Registration</h2>
+        <h2 style="text-align: center; margin-top: 0; color: #009688;">New Registration</h2>
         <form id="registrationForm" class="scroll-form">
             <input type="text" name="User Name" placeholder="User Name (Login ID)" required>
             <input type="text" name="First Name" placeholder="First Name" required>
@@ -170,27 +190,31 @@
             <input type="password" name="confirmPassword" placeholder="Confirm Password" required>
 
             <button type="submit" class="btn-emp" style="margin-top: 10px;">Submit Registration</button>
-            <div id="reg-loading" style="display:none; text-align:center; margin-top:5px;">Saving to Database...</div>
         </form>
     </div>
 </div>
 
 <script>
-    // ==========================================
-    // CONFIGURATION
-    // ==========================================
-    const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/b53909p8ngawe'; 
-    // ==========================================
-
     // 1. PAGE NAVIGATION FUNCTIONS
+    window.showManagement = function() {
+        hideAll();
+        document.getElementById('management-section').style.display = 'flex';
+    }
+
+    window.showHR = function() {
+        hideAll();
+        document.getElementById('hr-section').style.display = 'flex';
+    }
+
     window.showEmployee = function() {
-        document.getElementById('management-section').style.display = 'none';
+        hideAll();
         document.getElementById('employee-section').style.display = 'flex';
     }
 
-    window.showManagement = function() {
+    function hideAll() {
+        document.getElementById('management-section').style.display = 'none';
+        document.getElementById('hr-section').style.display = 'none';
         document.getElementById('employee-section').style.display = 'none';
-        document.getElementById('management-section').style.display = 'flex';
     }
 
     // Modal Handling
@@ -207,12 +231,12 @@
     window.handleLogin = function(event, role) {
         event.preventDefault();
         
+        // --- MANAGEMENT LOGIN ---
         if(role === 'management') {
             const id = document.getElementById('mgmt-id').value;
             const pass = document.getElementById('mgmt-pass').value;
 
-            // Simple Admin Check
-            if(id === "admin" && pass === "admin123") {
+            if(id === "admin@aiinfotech" && pass === "admin123") {
                 sessionStorage.setItem("userRole", "admin");
                 sessionStorage.setItem("userName", "Administrator");
                 window.location.href = "management_dashboard.html";
@@ -220,59 +244,32 @@
                 alert("Invalid Management Credentials");
             }
 
+        // --- HR LOGIN ---
+        } else if(role === 'hr') {
+            const id = document.getElementById('hr-id').value;
+            const pass = document.getElementById('hr-pass').value;
+
+            if(id === "hr@aiinfotech" && pass === "hr123") {
+                sessionStorage.setItem("userRole", "hr");
+                sessionStorage.setItem("userName", "HR Admin");
+                window.location.href = "hr_dashboard.html"; 
+            } else {
+                alert("Invalid HR Credentials");
+            }
+
+        // --- EMPLOYEE LOGIN ---
         } else if(role === 'employee') {
             const id = document.getElementById('emp-id').value;
             const pass = document.getElementById('emp-pass').value;
-            const loading = document.getElementById('loading');
 
-            loading.style.display = 'block';
-
-            // 1. Always Search Database FIRST
-            fetch(`${SHEETDB_API_URL}/search?User Name=${encodeURIComponent(id)}`)
-                .then(response => response.json())
-                .then(data => {
-                    loading.style.display = 'none';
-                    
-                    // Case A: User Found in Database
-                    if (data.length > 0) {
-                        const user = data[0]; 
-                        
-                        // We strictly use the database password here
-                        if (user["Password"] === pass) {
-                            sessionStorage.setItem("userRole", "employee");
-                            sessionStorage.setItem("userName", user["User Name"]);
-                            sessionStorage.setItem("fullName", `${user["First Name"]} ${user["Last Name"]}`);
-                            window.location.href = "employee_dashboard.html";
-                        } else {
-                            alert("Incorrect Password (Database Record Found)");
-                        }
-                    } 
-                    // Case B: User NOT Found in Database -> Check Default Hardcoded
-                    else {
-                        if(id === "employee" && pass === "employee123") {
-                            sessionStorage.setItem("userRole", "employee");
-                            sessionStorage.setItem("userName", "employee"); // Default ID
-                            sessionStorage.setItem("fullName", "Demo Employee"); // Default Name
-                            window.location.href = "employee_dashboard.html";
-                        } else {
-                            alert("User ID not found in Database");
-                        }
-                    }
-                })
-                .catch(error => {
-                    loading.style.display = 'none';
-                    console.error('Error:', error);
-                    
-                    // Fallback: If internet fails, allow default login if credentials match
-                    if(id === "employee" && pass === "employee123") {
-                        alert("Network Error. Logging in with Offline Default Credentials.");
-                        sessionStorage.setItem("userRole", "employee");
-                        sessionStorage.setItem("userName", "employee");
-                        window.location.href = "employee_dashboard.html";
-                    } else {
-                        alert("Connection error. Please try again.");
-                    }
-                });
+            if(id === "employee@aiinfotech" && pass === "employee123") {
+                sessionStorage.setItem("userRole", "employee");
+                sessionStorage.setItem("userName", "employee");
+                sessionStorage.setItem("fullName", "Verified Employee");
+                window.location.href = "employee_dashboard.html";
+            } else {
+                alert("Invalid Employee Credentials");
+            }
         }
     }
 
@@ -284,48 +281,16 @@
         
         const formData = new FormData(regForm);
         const userData = Object.fromEntries(formData.entries());
-        const loading = document.getElementById('reg-loading');
 
-        // Check Passwords
         if(userData["Password"] !== userData["confirmPassword"]){
             alert("Passwords do not match!");
             return;
         }
 
-        // Delete confirmPassword so it is NOT sent to the Google Sheet
-        delete userData["confirmPassword"];
-        
-        loading.style.display = 'block';
-
-        // POST request to SheetDB
-        fetch(SHEETDB_API_URL, {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                data: [ userData ]
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            loading.style.display = 'none';
-            if (data.created === 1) {
-                alert("Registration Successful! You can now login.");
-                regForm.reset();
-                window.closeModal();
-            } else if (data.error) {
-                alert("Database Error: " + data.error);
-            } else {
-                alert("Registration Failed. Please verify that your Google Sheet Headers match the form fields exactly.");
-            }
-        })
-        .catch(error => {
-            loading.style.display = 'none';
-            console.error("Error registering:", error);
-            alert("Network Error: " + error.message);
-        });
+        // Simulate Success
+        alert("Registration Successful (Demo Mode). Please login with: employee@aiinfotech / employee123");
+        regForm.reset();
+        window.closeModal();
     });
 
 </script>
